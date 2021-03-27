@@ -36,7 +36,7 @@ const getCategories = async (req, res) => {
             if(!result) {
                 throw new HTTPException("There is no category", HTTP.NOT_FOUND);
             }
-            return res.status(HTTP.OK).json(categories);
+            return res.status(HTTP.OK).json(result);
         });
 
     }

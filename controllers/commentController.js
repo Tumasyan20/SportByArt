@@ -44,6 +44,22 @@ const addComment = async (req, res) => {
             comment_content
         } = req.body;
 
+        if(!articleId) {
+            throw new HTTPException("ArticleId does not exist", HTTP.BAD_REQUEST);
+        }
+
+        if(!commentator_username) {
+            throw new HTTPException("Commentator username does not exist", HTTP.BAD_REQUEST);
+        }
+
+        if(!commentator_email) {
+            throw new HTTPException("Commentator email does not exist", HTTP.BAD_REQUEST);
+        }
+
+        if(!comment_content) {
+            throw new HTTPException("Comment content does not exist", HTTP.BAD_REQUEST);
+        }
+
         await Article.findById({"_id" : articleId}).catch(error => {
             throw new HTTPException("Article by that id does not found", HTTP.NOT_FOUND);
         });
