@@ -28,9 +28,6 @@ async function start() {
 start();
 
 
-app.use('/', router);       //? connect project main router
-
-
 
 //? use body parses for encode request body
 app.use(bodyParser.urlencoded({
@@ -54,3 +51,4 @@ app.use(function(req, res, next) {
 });
 
 
+app.use('/', router);       //? connect project main router

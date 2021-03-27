@@ -7,4 +7,4 @@ const schema = new Schema({
     }
 });
 
-module.export = model('subscribe', schema);
+module.exports = model('subscribe', schema);

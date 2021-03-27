@@ -15,4 +15,4 @@ const schema = new Schema({
     }
 });
 
-module.export = model('aboutus', schema);
+module.exports = model('aboutus', schema);
