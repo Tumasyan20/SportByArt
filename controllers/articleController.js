@@ -12,11 +12,11 @@ const { HTTPException }     = require('../lib/HTTPexception');
 const getArticles = async (req, res) => {
     //todo add server side pagination
     try{
-        await Article.find({}).sort('-publication').then((result) => {
+        await Article.find({}, "title author_id author_username image shortDesc publication rating category").sort('-publication').then((result) => {
             if(!result) {
                 throw new HTTPException("There is not article", HTTP.NOT_FOUND);
             }
-            
+
             return res.status(HTTP.OK).json(result);
         });
 
@@ -33,7 +33,7 @@ const getArticles = async (req, res) => {
 //? Controller for get article by sended id with get parametrs
 const getArticle = async (req, res) => {
     try{
-        await Article.findById({'_id' : req.params.id})
+        await Article.findById({'_id' : req.params.id}, "title author_id author_username image shortDesc publication rating category")
         .catch(error => {
             throw new HTTPException("Can't find any article by yout id", HTTP.NOT_FOUND)
         })

@@ -23,7 +23,6 @@ const getComment = async (req, res) => {
 
     }
     catch(exception) {
-        console.log(exception);
         if (!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
@@ -32,6 +31,25 @@ const getComment = async (req, res) => {
     }
 }
 
+
+//? controller for get all comments
+const getComments = async (req, res) => {
+    try {
+        await Comment.find({}).then((result) => {
+            if(!result) {
+                return res.status(HTTP.NOT_FOUND).json({"message" : "There are no comments"});
+            }
+            return res.status(HTTP.OK).json(result);
+        });
+    }
+    catch(exception) {
+        if (!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = 'Something went wrong';
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+};
 
 
 //? controller for add new comments
