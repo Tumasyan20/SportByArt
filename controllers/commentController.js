@@ -103,5 +103,6 @@ const addComment = async (req, res) => {
 
 module.exports = {
     getComment,
+    getComments,
     addComment
 }
