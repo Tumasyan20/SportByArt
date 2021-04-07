@@ -7,14 +7,16 @@ const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
 
 
+
 //? Controller for get all article list
 const getArticles = async (req, res) => {
     //todo add server side pagination
     try{
-        await Article.find({}).then((result) => {
+        await Article.find({}).sort('-publication').then((result) => {
             if(!result) {
                 throw new HTTPException("There is not article", HTTP.NOT_FOUND);
             }
+            
             return res.status(HTTP.OK).json(result);
         });
 
@@ -44,7 +46,6 @@ const getArticle = async (req, res) => {
         });
     }
     catch(exception) {
-        console.log(exception);
         if (!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
@@ -66,7 +67,6 @@ const searchArticle = async (req, res) => {
         });
     }
     catch(exception) {
-        console.log(exception);
         if (!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
@@ -117,7 +117,7 @@ const addArticle = async(req, res) => {
             throw new HTTPException("Sub category doe's not exist", HTTP.BAD_REQUEST);
         }
 
-        await User.findById({"_id" : author}).catch(error => {
+        const authorInfo = await User.findById({"_id" : author}).catch(error => {
             throw new HTTPException("Auhtor by that id does not exist", HTTP.NOT_FOUND);
         })
         
@@ -130,9 +130,10 @@ const addArticle = async(req, res) => {
             throw new HTTPException("Sub category by that id does not  exist", HTTP.NOT_FOUND);
         })
 
-        new Article({
+        const article = new Article({
             title,
-            author,
+            author_id : authorInfo._id,
+            author_username: authorInfo.username,
             image,
             shortDesc,
             content,
@@ -145,7 +146,6 @@ const addArticle = async(req, res) => {
         return res.status(HTTP.OK).json({"message" : "Article created successfuly"});
     }
     catch(exception) {
-        console.log(exception);
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = "Somethind went wrong :("

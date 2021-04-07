@@ -1,13 +1,18 @@
 const {Schema, model} = require('mongoose');
 
+
 const schema = new Schema({
     title: {
         type: String,
         requires: true
     },
-    author: {
+    author_id: {
         ref: 'users',
         type: Schema.Types.ObjectId
+    },
+    author_username: {
+        type: String,
+        require: true
     },
     image: {
         type: String,
@@ -23,7 +28,7 @@ const schema = new Schema({
     },
     publication: {
         type: Date,
-        default: Date.now()
+        default: Date.now(),
     },
     rating: {
         type: Number,

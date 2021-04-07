@@ -20,7 +20,15 @@ const schema = new Schema({
     category: {
         ref: 'categories',
         type: Schema.Types.ObjectId
+    },
+    author_id: {
+        ref: 'users',
+        type: Schema.Types.ObjectId
+    },
+    author_username: {
+        type: String,
+        require: true
     }
 });
 
-module.exports = model("videos", schema)
+module.exports = model("videos", schema);

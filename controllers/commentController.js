@@ -75,7 +75,6 @@ const addComment = async (req, res) => {
         return res.status(HTTP.OK).json({"message" : "Comment added successfuly!"});
     }
     catch(exception) {
-        console.log(exception);
         if (!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';

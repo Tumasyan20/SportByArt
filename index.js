@@ -5,6 +5,7 @@ const mongoose      = require('mongoose');          //? ORM for easy wotrk with 
 
 const { PORT, DB_URL } = require('./config');           //? import variables from config file
 const router           = require('./routers/router');   //? import project main router
+const adminRouter      = require('./admin/router');     //? import project admin router
 
 const app = express();
 
@@ -51,4 +52,5 @@ app.use(function(req, res, next) {
 });
 
 
-app.use('/', router);       //? connect project main router
+app.use('/', router);           //? connect project main router
+app.use('/admin', adminRouter); //? connect project admin router

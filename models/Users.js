@@ -13,6 +13,10 @@ const schema = new Schema({
         type: String,
         required: true
     },
+    last_login: {
+        type: Date,
+        default: Date.now()
+    },
     root: {
         type: Number,
         default: 0
