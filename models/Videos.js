@@ -17,9 +17,13 @@ const schema = new Schema({
         type: Date,
         default: Date.now()
     },
-    category: {
+    category_id: {
         ref: 'categories',
         type: Schema.Types.ObjectId
+    },
+    category_name: {
+        type: String,
+        require: true
     },
     author_id: {
         ref: 'users',

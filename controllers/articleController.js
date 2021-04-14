@@ -3,6 +3,7 @@ const User                  = require('../models/Users');
 const Category              = require('../models/Categories');
 const SubCategory           = require('../models/SubCategories');
 
+
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
 
@@ -10,19 +11,43 @@ const { HTTPException }     = require('../lib/HTTPexception');
 
 //? Controller for get all article list
 const getArticles = async (req, res) => {
-    //todo add server side pagination
     try{
-        await Article.find({}, "title author_id author_username image shortDesc publication rating category").sort('-publication').then((result) => {
-            if(!result) {
-                throw new HTTPException("There is not article", HTTP.NOT_FOUND);
-            }
+        let page = req.params.page;
 
-            return res.status(HTTP.OK).json(result);
-        });
+        if(page == "all") {
+            await Article.find({}, 
+                "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name"
+            )
+            .sort('-publication').then((result) => {
+                if(result.length == 0) {
+                    throw new HTTPException("ARTICLE: No results!", HTTP.NOT_FOUND);
+                }
 
+                return res.status(HTTP.OK).json(result);
+            });
+        }
+        else {
+            page = parseInt(page);
+            const limit = 10;
+        
+            await Article.find({}, 
+                "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name"
+            )
+            .skip((page * limit) - limit).limit(limit)
+            .sort('-publication').then((result) => {
+                if(result.length == 0) {
+                    throw new HTTPException("ARTICLE: No results!", HTTP.NOT_FOUND);
+                }
+
+                return res.status(HTTP.OK).json(result);
+            });
+
+        }
+        
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {
+            console.log(exception);
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
         }
@@ -33,13 +58,15 @@ const getArticles = async (req, res) => {
 //? Controller for get article by sended id with get parametrs
 const getArticle = async (req, res) => {
     try{
-        await Article.findById({'_id' : req.params.id}, "title author_id author_username image shortDesc publication rating category")
+        await Article.findById({'_id' : req.params.id}, 
+            "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name"
+        )
         .catch(error => {
-            throw new HTTPException("Can't find any article by yout id", HTTP.NOT_FOUND)
+            throw new HTTPException("ARTICLE: Wrong id", HTTP.NOT_FOUND)
         })
         .then((result) => {
-            if(!result) {
-                throw new HTTPException("Can't find any article by your id", HTTP.NOT_FOUND)
+            if(result.length == 0) {
+                throw new HTTPException("ARTICLE: Can't find any article by your id", HTTP.NOT_FOUND)
             }
 
             return res.status(HTTP.OK).json(result);
@@ -47,6 +74,7 @@ const getArticle = async (req, res) => {
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {
+            console.log(exception);
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
         }
@@ -59,8 +87,8 @@ const searchArticle = async (req, res) => {
     try{
         await Article.find({ title: {$regex: '.*' + req.body.title + '*.', $options: 'i'} })
         .then((result) => {
-            if(!result) {
-                throw new HTTPException("There is no articles by your request", HTTP.NOT_FOUND)
+            if(result.length == 0) {
+                throw new HTTPException("ARTICLE: No results!", HTTP.NOT_FOUND)
             }
 
             return res.status(HTTP.OK).json(result);
@@ -68,6 +96,7 @@ const searchArticle = async (req, res) => {
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {
+            console.log(exception);
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
         }
@@ -79,66 +108,84 @@ const searchArticle = async (req, res) => {
 //? Controller for add new articles
 const addArticle = async(req, res) => {
     try{
+
+        const authorInfo = await User.findById({"_id" : req.userData.userID}).catch(error => {
+            if(error) {
+                throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);
+            }
+        })
+        .catch(exception => {
+            if(exception) {
+                throw new HTTPException("ARTICLE: Wrong user id");
+            }
+        })
+        .then((result) =>{
+            if(result.length == 0) {
+                throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);
+            }
+
+            if(result.root != 5) {
+                throw new HTTPException("ARTICLE: No admin rights.", HTTP.CONFLICT);
+            }
+
+            return result;
+        });
+
         const {
             title,
             author,
-            image,
             shortDesc,
             content,
             category,
-            subCategory
+            subCategory,
         } = req.body
 
+        const imageData = req.file;
+
         if(!title) {
-            throw new HTTPException("Title doe's not exist", HTTP.BAD_REQUEST);
-        }
-
-        if(!author) {
-            throw new HTTPException("Author doe's not exist", HTTP.BAD_REQUEST);
-        }
-
-        if(!image) {
-            throw new HTTPException("Image doe's not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("ARTICLE: Title does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!shortDesc) {
-            throw new HTTPException("Short description doe's not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("ARTICLE: Short description does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!content) {
-            throw new HTTPException("Content doe's not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("ARTICLE: Content does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!category) {
-            throw new HTTPException("Category doe's not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("ARTICLE: Category id does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!subCategory) {
-            throw new HTTPException("Sub category doe's not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("ARTICLE: Sub category id does not exist", HTTP.BAD_REQUEST);
         }
 
-        const authorInfo = await User.findById({"_id" : author}).catch(error => {
-            throw new HTTPException("Auhtor by that id does not exist", HTTP.NOT_FOUND);
-        })
+        if(!imageData.path) {
+            throw new HTTPException("ARTICLE: Image upload error", HTTP.BAD_REQUEST);
+        }
         
 
-        await Category.findById({"_id" : category}).catch(error => {
-            throw new HTTPException("Category by that id does not exist", HTTP.NOT_FOUND);
+        const categoryInfo = await Category.findById({"_id" : category}).catch(error => {
+            throw new HTTPException("ARTICLE: Wrong category id", HTTP.NOT_FOUND);
         });
 
-        await SubCategory.findById({"_id" : subCategory}).catch(error => {
-            throw new HTTPException("Sub category by that id does not  exist", HTTP.NOT_FOUND);
-        })
+        const subCategoryInfo = await SubCategory.findById({"_id" : subCategory}).catch(error => {
+            throw new HTTPException("ARTICLE: Wrong Sub category id", HTTP.NOT_FOUND);
+        });
 
         const article = new Article({
             title,
-            author_id : authorInfo._id,
+            author_id: author,
             author_username: authorInfo.username,
-            image,
+            image : imageData.path,
             shortDesc,
             content,
-            category,
-            subCategory
+            category_id : category,
+            category_name: categoryInfo.title,
+            subCategory_id: subCategory,
+            subCategory_name: subCategoryInfo.title
         });
 
         await article.save();
@@ -147,8 +194,9 @@ const addArticle = async(req, res) => {
     }
     catch(exception) {
         if(!(exception instanceof HTTPException)) {
+            console.log(exception)
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-            exception.message = "Somethind went wrong :("
+            exception.message = "ARTICLE: Somethind went wrong"
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }

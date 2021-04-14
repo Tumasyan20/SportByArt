@@ -1,15 +1,20 @@
-const express = require('express');
-const app = express()
-app.listen(5846)
-function getStatisticTimer() {
-    var d = new Date();
-    var h = d.getHours();
-    var m = d.getMinutes();
-    setInterval(() => {
-        if(h == 00 && m == 00){
-            console.log(secondsUntilEndOfDate)
-        }
-    }, 60000)
-}
+const fetch = require('node-fetch');
 
-getStatisticTimer()
+const req = async () => {
+    try {
+        const response = await fetch("HTTP://127.0.0.1:8000/article/search", {
+            method: "POST",
+            body: JSON.stringify({"title" : "mek"}),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+    
+        const json = await response.json();
+        console.log(json)
+    }
+    catch(error) {
+        console.log("error", error);
+    }
+}
+req()

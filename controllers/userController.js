@@ -30,7 +30,7 @@ const registerUser = async (req, res) => {
 
         //todo email validation
 
-        if(!passowrd) {
+        if(!password) {
             throw new HTTPException("Missed password", HTTP.BAD_REQUEST);
         }
 
@@ -38,6 +38,12 @@ const registerUser = async (req, res) => {
             throw new HTTPException("Too short password", HTTP.FORBIDDEN)
         }
         
+        await User.findOne({username}).then((result) => {
+            if(result) {
+                throw new HTTPException("User by that username already exist.", HTTP.CONFLICT);
+            }
+        });
+
         let hash = await bcrypt.hash(password, 10);
 
         const user = await new User({

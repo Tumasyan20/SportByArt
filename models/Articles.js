@@ -34,11 +34,19 @@ const schema = new Schema({
         type: Number,
         default: 0
     },
-    category: {
+    category_name: {
+        type: String,
+        required: true
+    },
+    category_id: {
         ref: 'categories',
         type: Schema.Types.ObjectId
     },
-    subCategory: {
+    subCategory_name: {
+        type: String,
+        require: true
+    },
+    subCategory_id: {
         ref: 'subcategories',
         type: Schema.Types.ObjectId
     }

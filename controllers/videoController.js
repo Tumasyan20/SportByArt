@@ -27,6 +27,33 @@ const getVideos = async (req, res) => {
     }
 };
 
+//? Controller for get category video list
+const getVideosByCat = async (req, res) => {
+    try {
+        const categoryId = req.params;
+
+        await Category.findById({"_id" : categoryId}).catch(error => {
+            if(error) {
+                throw new HTTPException("Category by that id does not exist", HTTP.NOT_FOUND);
+            }
+        });
+
+        await Video.find({"category_id" : categoryId}).then(result => {
+            if(!result) {
+                throw new HTTPException("There are no videos", HTTP.NOT_FOUND);
+            }
+            return res.status(HTTP.OK).json(result);
+        });
+    }
+    catch (exception) {
+        if (!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = 'Something went wrong';
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+};
+
 
 //? Controller for add new video
 const addVideo = async (req, res) => {
@@ -35,11 +62,12 @@ const addVideo = async (req, res) => {
             title,
             description,
             video,
-            category,
+            category_id,
             author_id
         } = req.body;
 
         let author_username;
+        let category_name;
 
         if(!title) {
             throw new HTTPException("Title does not exist", HTTP.BAD_REQUEST);
@@ -53,7 +81,7 @@ const addVideo = async (req, res) => {
             throw new HTTPException("Video url does not exist", HTTP.BAD_REQUEST);
         }
 
-        if(!category) {
+        if(!category_id) {
             throw new HTTPException("Video category does not exist", HTTP.BAD_REQUEST);
         }
 
@@ -61,7 +89,11 @@ const addVideo = async (req, res) => {
             throw new HTTPException("Author does not exist", HTTP.BAD_REQUEST);
         }
 
-        await Category.findById({"_id" : category}).catch(error => {
+        await Category.findById({"_id" : category})
+        .then(result => {
+            category_name = result.title;
+        })
+        .catch(error => {
             if(error) {
                 throw new HTTPException("Category by that id does not exist", HTTP.NOT_FOUND);
             }
@@ -81,7 +113,8 @@ const addVideo = async (req, res) => {
             title,
             description,
             video,
-            category,
+            category_id,
+            category_name,
             author_id,
             author_username
         });
@@ -102,5 +135,6 @@ const addVideo = async (req, res) => {
 
 module.exports = {
     getVideos,
+    getVideosByCat,
     addVideo
 }

@@ -1,5 +1,5 @@
 const { HTTP }      = require('../lib/constants');
-const { decodeJWT } = require('../lib/decodeJWT');
+const decodeJWT     = require('../lib/decodeJWT');
 
 module.exports = (req, res, next) => {
     let errorMsg;
@@ -14,8 +14,6 @@ module.exports = (req, res, next) => {
     if(!token) {
         return res.status(HTTP.UNAUTHORIZED).json({ "message": "invalid token"});
     }
-
-    token = token.split(' ')[1];
     const decoded = decodeJWT(token);
     if(decoded == null) {
         errorMsg = "Authorization failed";
