@@ -4,6 +4,10 @@ const schema = new Schema({
     title: {
         type: String,
         required: true
+    },
+    show_in_nav: {
+        type: Boolean,
+        default: "false"
     }
 });
 

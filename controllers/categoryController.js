@@ -15,11 +15,6 @@ const addCategory =  async (req, res) => {
                 throw new HTTPException("CATEGORY: Authorization error", HTTP.BAD_REQUEST);
             }
         })
-        .catch(exception => {
-            if(exception) {
-                throw new HTTPException("CATEGORY: Wrong user id");
-            }
-        })
         .then((result) =>{
             if(result.length == 0) {
                 throw new HTTPException("CATEGORY: Authorization error", HTTP.BAD_REQUEST);
@@ -30,20 +25,23 @@ const addCategory =  async (req, res) => {
             }
         });
 
-        const { title } = req.body;
+        const { title, show_in_nav} = req.body;
 
         if(!title) {
             throw new HTTPException("CATEGORY: Title does not exist", HTTP.BAD_REQUEST);
         }
 
-        const category = new Category({title});
+        if(!show_in_nav) {
+            show_in_nav = false;
+        }
+
+        const category = new Category({title, show_in_nav, show_in_another});
 
         await category.save()
         return res.status(HTTP.OK).json({"message":"Category was created successfuly!"});
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {
-            console.log(exception);
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
         }
@@ -54,17 +52,42 @@ const addCategory =  async (req, res) => {
 //? Controller for get all category list
 const getCategories = async (req, res) => {
     try {
-        await Category.find({}).then(result => {
-            if(result.length == 0) {
-                throw new HTTPException("CATEGORY: No results", HTTP.NOT_FOUND);
-            }
-            return res.status(HTTP.OK).json(result);
-        });
+        if(!req.params.type) {
+            throw new HTTPException("CATEGORY: Request parametr does not exist", HTTP.BAD_REQUEST);
+        }
+
+        const type = req.params.type;
+
+        if(type == "navbar") {
+            await Category.find({show_in_nav: true}).then(result => {
+                if(result.length == 0) {
+                    throw new HTTPException("CATEGORY: No results", HTTP.NOT_FOUND);
+                }
+                return res.status(HTTP.OK).json(result);
+            });
+        }
+
+        if(type == "another") {
+            await Category.find({show_in_nav: false}).then(result => {
+                if(result.length == 0) {
+                    throw new HTTPException("CATEGORY: No results", HTTP.NOT_FOUND);
+                }
+                return res.status(HTTP.OK).json(result);
+            });
+        }
+
+        if(type == "all") {
+            await Category.find({}).then(result => {
+                if(result.length == 0) {
+                    throw new HTTPException("CATEGORY: No results", HTTP.NOT_FOUND);
+                }
+                return res.status(HTTP.OK).json(result);
+            });
+        }
 
     }
     catch (exception) {
         if (!(exception instanceof HTTPException)) {
-            console.log(exception)
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
         }

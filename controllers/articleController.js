@@ -114,11 +114,6 @@ const addArticle = async(req, res) => {
                 throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);
             }
         })
-        .catch(exception => {
-            if(exception) {
-                throw new HTTPException("ARTICLE: Wrong user id");
-            }
-        })
         .then((result) =>{
             if(result.length == 0) {
                 throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);

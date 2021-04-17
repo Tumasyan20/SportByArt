@@ -1,6 +1,7 @@
 const User                  = require("../models/Users");
 const bcrypt                = require("bcrypt");
 const jwt                   = require("jsonwebtoken");
+
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
 const config                = require('../config');
@@ -73,16 +74,28 @@ const userLogin = async (req, res) => {
             username,
             password
         } = req.body;
+
     
         if(!username || !password) {
             throw new HTTPException("Missed username or password", HTTP.BAD_REQUEST);
         }
+
+
 
         const user = await User.findOne({username}).catch(error => {
             if(err) {
                 throw new HTTPException("Cant find any user by that username", HTTP.FORBIDDEN)
             }
         });
+
+        if(!user) {
+            throw new HTTPException("Username or password is incorrect", HTTP.FORBIDDEN);
+        }
+
+        if(user.root != 5) {
+            throw new HTTPException("No admin rights!", HTTP.BAD_REQUEST)
+        }
+
         bcrypt.compare(password, user.password, async (err, result) => {
             if(err) {
                 console.log(err)
@@ -118,6 +131,7 @@ const userLogin = async (req, res) => {
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {
+            console.log(exception)
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
         }
