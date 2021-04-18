@@ -1,14 +1,31 @@
+//? Connecting db models
 const Category  = require('../models/Categories');
 const Article   = require('../models/Articles');
 const User      = require('../models/Users');
 
-const { HTTP }              = require('../lib/constants');
-const { HTTPException }     = require('../lib/HTTPexception');
+const { HTTP }              = require('../lib/constants');          //? exception status codes for response
+const { HTTPException }     = require('../lib/HTTPexception');      //? custom js exception 
 
 
 //? Controller for add new categories
 const addCategory =  async (req, res) => {
     try {
+        await User.findById({"_id" : req.userData.userID}).catch(error => {
+            if(error) {
+                throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);
+            }
+        })
+        .then((result) =>{
+            if(result.length == 0) {
+                throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);
+            }
+
+            if(result.root != 5) {
+                throw new HTTPException("ARTICLE: No admin rights.", HTTP.CONFLICT);
+            }
+
+            return result;
+        });
 
         await User.findById({"_id" : req.userData.userID}).catch(error => {
             if(error) {

@@ -1,11 +1,12 @@
+//? Connecting db models
 const Article               = require('../models/Articles');
 const User                  = require('../models/Users');
 const Category              = require('../models/Categories');
 const SubCategory           = require('../models/SubCategories');
 
 
-const { HTTP }              = require('../lib/constants');
-const { HTTPException }     = require('../lib/HTTPexception');
+const { HTTP }              = require('../lib/constants');          //? exception status codes for response
+const { HTTPException }     = require('../lib/HTTPexception');      //? custom js exception 
 
 
 
@@ -47,7 +48,6 @@ const getArticles = async (req, res) => {
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {
-            console.log(exception);
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
         }
@@ -74,7 +74,6 @@ const getArticle = async (req, res) => {
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {
-            console.log(exception);
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
         }
@@ -197,6 +196,16 @@ const addArticle = async(req, res) => {
     }
 }
 
+
+// const updateArticle = async (req, res) => {
+//     if(!req.params.id) {
+//         throw new HTTPException("ARTICLE: No id", HTTP.BAD_REQUEST);
+//     }
+
+//     const id = req.params.id;
+
+//     await Article.findOneAndUpdate
+// }
 
 module.exports = {
     getArticles,
