@@ -4,6 +4,7 @@ const User          = require('../models/Users');
 
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
+const checkRights           = require('../lib/checkRights');
 
 
 //? Controller for get all video list
@@ -58,54 +59,59 @@ const getVideosByCat = async (req, res) => {
 //? Controller for add new video
 const addVideo = async (req, res) => {
     try {
+        const author = await User.findById({"_id" : req.userData.userID}).catch(error => {
+            if(error) {
+                throw new HTTPException("Authorization error", HTTP.BAD_REQUEST);
+            }
+        })
+        .then((result) =>{
+            if(result.length == 0) {
+                throw new HTTPException("Authorization error", HTTP.BAD_REQUEST);
+            }
+
+            return result;
+        });
+
+        if(!checkRights(author.id, 5)) {
+            throw new HTTPException("No admin rights", HTTP.FORBIDDEN);
+        }
+
         const {
             title,
             description,
             video,
             category_id,
-            author_id
         } = req.body;
 
-        let author_username;
+        const author_id = author.id;
+        const author_username = author.username;
+
         let category_name;
 
         if(!title) {
-            throw new HTTPException("Title does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("VIDEO: Title does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!description) {
-            throw new HTTPException("Description does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("VIDEO: Description does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!video) {
-            throw new HTTPException("Video url does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("VIDEO: Video url does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!category_id) {
-            throw new HTTPException("Video category does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("VIDEO: Video category does not exist", HTTP.BAD_REQUEST);
         }
 
-        if(!author_id) {
-            throw new HTTPException("Author does not exist", HTTP.BAD_REQUEST);
-        }
 
-        await Category.findById({"_id" : category})
+        await Category.findById({"_id" : category_id})
         .then(result => {
             category_name = result.title;
         })
         .catch(error => {
             if(error) {
-                throw new HTTPException("Category by that id does not exist", HTTP.NOT_FOUND);
-            }
-        });
-
-        await User.findById({"_id" : author})
-        .then((result) => {
-            author_username = result.username;
-        })
-        .catch(error => {
-            if(error) {
-                throw new HTTPException("Author by that id does not exist", HTTP.NOT_FOUND);
+                throw new HTTPException("VIDEO: Category by that id does not exist", HTTP.NOT_FOUND);
             }
         });
 
@@ -121,7 +127,7 @@ const addVideo = async (req, res) => {
 
         newVideo.save();
 
-        return res.status(HTTP.OK).json({"message" : "Video added successfuly"});
+        return res.status(HTTP.OK).json({"message" : "Video added successfuly", Video: newVideo});
 
     }
     catch (exception) {

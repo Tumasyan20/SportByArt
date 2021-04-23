@@ -7,7 +7,7 @@ const Authenticate       = require('../../middlewares/authenticate');       //? 
 
 
 router.get('/list/:type', categoryController.getCategories);                //? Route for get all categories
-router.get('/:categoryId', Authenticate, categoryController.getCategory);   //? Route for get category article list, by sended category id
+router.get('/:categoryId', categoryController.getCategory);                 //? Route for get category article list, by category id
 router.post('/add', Authenticate, categoryController.addCategory);          //? Route for add new category
 
 module.exports = router;

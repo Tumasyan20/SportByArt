@@ -4,6 +4,7 @@ const jwt                   = require("jsonwebtoken");
 
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
+const checkRights           = require('../lib/checkRights');
 const config                = require('../config');
 
 
@@ -81,12 +82,15 @@ const userLogin = async (req, res) => {
         }
 
 
-
         const user = await User.findOne({username}).catch(error => {
             if(err) {
                 throw new HTTPException("Cant find any user by that username", HTTP.FORBIDDEN)
             }
         });
+
+        if(!checkRights(user.id, 5)) {
+            throw new HTTPException("No admin rights", HTTP.FORBIDDEN);
+        }
 
         if(!user) {
             throw new HTTPException("Username or password is incorrect", HTTP.FORBIDDEN);

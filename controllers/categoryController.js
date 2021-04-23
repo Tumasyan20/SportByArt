@@ -5,42 +5,15 @@ const User      = require('../models/Users');
 
 const { HTTP }              = require('../lib/constants');          //? exception status codes for response
 const { HTTPException }     = require('../lib/HTTPexception');      //? custom js exception 
+const checkRights           = require('../lib/checkRights');        //? function for check user rights
 
 
 //? Controller for add new categories
 const addCategory =  async (req, res) => {
     try {
-        await User.findById({"_id" : req.userData.userID}).catch(error => {
-            if(error) {
-                throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);
-            }
-        })
-        .then((result) =>{
-            if(result.length == 0) {
-                throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);
-            }
-
-            if(result.root != 5) {
-                throw new HTTPException("ARTICLE: No admin rights.", HTTP.CONFLICT);
-            }
-
-            return result;
-        });
-
-        await User.findById({"_id" : req.userData.userID}).catch(error => {
-            if(error) {
-                throw new HTTPException("CATEGORY: Authorization error", HTTP.BAD_REQUEST);
-            }
-        })
-        .then((result) =>{
-            if(result.length == 0) {
-                throw new HTTPException("CATEGORY: Authorization error", HTTP.BAD_REQUEST);
-            }
-
-            if(result.root != 5) {
-                throw new HTTPException("CATEGORY: No admin rights.", HTTP.CONFLICT);
-            }
-        });
+        if(!checkRights(req.userData.userID, 5)) {
+            throw new HTTPException("CATEGORY: No admin rights!", HTTP.FORBIDDEN);
+        }
 
         const { title, show_in_nav} = req.body;
 
@@ -52,10 +25,10 @@ const addCategory =  async (req, res) => {
             show_in_nav = false;
         }
 
-        const category = new Category({title, show_in_nav, show_in_another});
+        const category = new Category({title, show_in_nav});
 
         await category.save()
-        return res.status(HTTP.OK).json({"message":"Category was created successfuly!"});
+        return res.status(HTTP.OK).json({"message":"Category was created successfuly!", category});
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {

@@ -7,6 +7,7 @@ const SubCategory           = require('../models/SubCategories');
 
 const { HTTP }              = require('../lib/constants');          //? exception status codes for response
 const { HTTPException }     = require('../lib/HTTPexception');      //? custom js exception 
+const checkRights           = require('../lib/checkRights');        //? function for check user rights
 
 
 
@@ -118,12 +119,12 @@ const addArticle = async(req, res) => {
                 throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);
             }
 
-            if(result.root != 5) {
-                throw new HTTPException("ARTICLE: No admin rights.", HTTP.CONFLICT);
-            }
-
             return result;
         });
+
+        if(!checkRights(req.userData.userID, 5)) {
+            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+        }
 
         const {
             title,
@@ -156,10 +157,9 @@ const addArticle = async(req, res) => {
             throw new HTTPException("ARTICLE: Sub category id does not exist", HTTP.BAD_REQUEST);
         }
 
-        if(!imageData.path) {
+        if(!imageData || !imageData.path) {
             throw new HTTPException("ARTICLE: Image upload error", HTTP.BAD_REQUEST);
         }
-        
 
         const categoryInfo = await Category.findById({"_id" : category}).catch(error => {
             throw new HTTPException("ARTICLE: Wrong category id", HTTP.NOT_FOUND);
@@ -184,11 +184,10 @@ const addArticle = async(req, res) => {
 
         await article.save();
 
-        return res.status(HTTP.OK).json({"message" : "Article created successfuly"});
+        return res.status(HTTP.OK).json({"message" : "Article created successfuly", article});
     }
     catch(exception) {
         if(!(exception instanceof HTTPException)) {
-            console.log(exception)
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = "ARTICLE: Somethind went wrong"
         }
