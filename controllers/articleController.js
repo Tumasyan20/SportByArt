@@ -1,3 +1,7 @@
+//? Connecting node modules
+const fs = require('fs');
+const fileType = require('file-type');
+
 //? Connecting db models
 const Article               = require('../models/Articles');
 const User                  = require('../models/Users');
@@ -108,34 +112,29 @@ const searchArticle = async (req, res) => {
 //? Controller for add new articles
 const addArticle = async(req, res) => {
     try{
-
-        const authorInfo = await User.findById({"_id" : req.userData.userID}).catch(error => {
-            if(error) {
-                throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);
-            }
-        })
-        .then((result) =>{
-            if(result.length == 0) {
-                throw new HTTPException("ARTICLE: Authorization error", HTTP.BAD_REQUEST);
-            }
-
-            return result;
-        });
-
         if(!checkRights(req.userData.userID, 5)) {
             throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
         }
 
+        const authorInfo = await User.findById({"_id" : req.userData.userID})
+        .then((result) => {
+            if(result.length == 0) {
+                throw new HTTPException("ARTICLE: There are no user by that id", HTTP.BAD_REQUEST);
+            }
+            return result;
+        })
+
         const {
             title,
-            author,
             shortDesc,
             content,
             category,
             subCategory,
+            image
         } = req.body
 
-        const imageData = req.file;
+        fs.writeFileSync('./debug/articleContentHtml' + Date.now() + '.html', content, {encoding: 'utf8'});
+
 
         if(!title) {
             throw new HTTPException("ARTICLE: Title does not exist", HTTP.BAD_REQUEST);
@@ -157,8 +156,8 @@ const addArticle = async(req, res) => {
             throw new HTTPException("ARTICLE: Sub category id does not exist", HTTP.BAD_REQUEST);
         }
 
-        if(!imageData || !imageData.path) {
-            throw new HTTPException("ARTICLE: Image upload error", HTTP.BAD_REQUEST);
+        if(!image) {
+            throw new HTTPException("ARTICLE: Image does not exist", HTTP.BAD_REQUEST);
         }
 
         const categoryInfo = await Category.findById({"_id" : category}).catch(error => {
@@ -169,11 +168,23 @@ const addArticle = async(req, res) => {
             throw new HTTPException("ARTICLE: Wrong Sub category id", HTTP.NOT_FOUND);
         });
 
+        let imagePath = './uploads/images/' + Date.now() + '.jpeg';
+
+        const base64image = image.replace(/^data:([A-Za-z-+/]+);base64,/, '');
+        
+        fileType.fromBuffer(Buffer.from(base64image, 'base64'))
+        .then((result) => {
+            if(!result.mime.includes('image'))
+                throw new HTTPException("ARTICLE: File is no image", HTTP.FORBIDDEN);
+        });
+        fs.writeFileSync(imagePath, base64image, {encoding: 'base64'});
+        imagePath = imagePath.substring(1);
+
         const article = new Article({
             title,
-            author_id: author,
+            author_id: authorInfo._id,
             author_username: authorInfo.username,
-            image : imageData.path,
+            image : imagePath,
             shortDesc,
             content,
             category_id : category,
@@ -187,6 +198,7 @@ const addArticle = async(req, res) => {
         return res.status(HTTP.OK).json({"message" : "Article created successfuly", article});
     }
     catch(exception) {
+        console.log(exception)
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = "ARTICLE: Somethind went wrong"
