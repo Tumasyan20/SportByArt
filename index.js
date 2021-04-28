@@ -33,12 +33,12 @@ start();
 
 //? use body parses for encode request body
 app.use(bodyParser.urlencoded({
-    limit: '50mb',
+    limit: '500mb',
     extended: true
  }));
  
 app.use(bodyParser.json(
-    {limit: '50mb'}
+    {limit: '500mb'}
 ));
 
 

@@ -7,6 +7,7 @@ const Article               = require('../models/Articles');
 const User                  = require('../models/Users');
 const Category              = require('../models/Categories');
 const SubCategory           = require('../models/SubCategories');
+const Slider                 = require('../models/Slider');
 
 
 const { HTTP }              = require('../lib/constants');          //? exception status codes for response
@@ -130,10 +131,9 @@ const addArticle = async(req, res) => {
             content,
             category,
             subCategory,
-            image
+            image,
+            slider
         } = req.body
-
-        fs.writeFileSync('./debug/articleContentHtml' + Date.now() + '.html', content, {encoding: 'utf8'});
 
 
         if(!title) {
@@ -160,6 +160,10 @@ const addArticle = async(req, res) => {
             throw new HTTPException("ARTICLE: Image does not exist", HTTP.BAD_REQUEST);
         }
 
+        if(!slider) {
+            throw new HTTPException("ARTICLE: Slider does not exist", HTTP.BAD_REQUEST);
+        }
+
         const categoryInfo = await Category.findById({"_id" : category}).catch(error => {
             throw new HTTPException("ARTICLE: Wrong category id", HTTP.NOT_FOUND);
         });
@@ -180,6 +184,8 @@ const addArticle = async(req, res) => {
         fs.writeFileSync(imagePath, base64image, {encoding: 'base64'});
         imagePath = imagePath.substring(1);
 
+        
+
         const article = new Article({
             title,
             author_id: authorInfo._id,
@@ -195,10 +201,31 @@ const addArticle = async(req, res) => {
 
         await article.save();
 
+        for(i in slider) {
+            let sliderPath = './uploads/slider/' + Date.now() + '.jpeg';
+
+            const base64slider = slider[i].replace(/^data:([A-Za-z-+/]+);base64,/, '');
+            
+            fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
+            .then((result) => {
+                if(!result.mime.includes('image'))
+                    throw new HTTPException("ARTICLE: File is no image", HTTP.FORBIDDEN);
+            });
+            fs.writeFileSync(sliderPath, base64slider, {encoding: 'base64'});
+            sliderPath = sliderPath.substring(1);
+            
+            const ImgSlider = new Slider({
+                image: sliderPath,
+                article: article._id
+            });
+
+            await ImgSlider.save();
+
+        }
+
         return res.status(HTTP.OK).json({"message" : "Article created successfuly", article});
     }
     catch(exception) {
-        console.log(exception)
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = "ARTICLE: Somethind went wrong"
@@ -209,13 +236,24 @@ const addArticle = async(req, res) => {
 
 
 // const updateArticle = async (req, res) => {
-//     if(!req.params.id) {
-//         throw new HTTPException("ARTICLE: No id", HTTP.BAD_REQUEST);
+//     try {
+//         const {
+//             articleId,
+//             title,
+//             shortDesc,
+//             content,
+//             category,
+//             subCategory,
+//             image
+//         }
 //     }
-
-//     const id = req.params.id;
-
-//     await Article.findOneAndUpdate
+//     catch(exception) {
+//         if(!(exception instanceof HTTPException)) {
+//             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+//             exception.message = "ARTICLE: Somethind went wrong"
+//         }
+//         return res.status(exception.statusCode).json({ message: exception.message });
+//     }
 // }
 
 module.exports = {

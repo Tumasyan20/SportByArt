@@ -1,9 +1,9 @@
 const express   = require('express');
-const router    = express.Router();         //? create express.js router variable
+const router    = express.Router();        
 
-const dashboardController = require('./controllers/dashboardController');
+const test = require('./controllers/testController');
 
-router.use('/test', dashboardController.test);          //? article router
+router.post('/test', test.test);         
 
 
 module.exports = router;

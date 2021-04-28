@@ -1,20 +1,9 @@
-const fetch = require('node-fetch');
+const array = [1, 2, 3, 4, 5];
 
-const req = async () => {
-    try {
-        const response = await fetch("HTTP://127.0.0.1:8000/article/search", {
-            method: "POST",
-            body: JSON.stringify({"title" : "mek"}),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-    
-        const json = await response.json();
-        console.log(json)
-    }
-    catch(error) {
-        console.log("error", error);
-    }
-}
-req()
+a = 5;
+a++;
+console.log(a)
+
+// for(i of array) {
+//     console.log(i);
+// }

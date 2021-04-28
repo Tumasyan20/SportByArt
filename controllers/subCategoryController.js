@@ -35,7 +35,6 @@ const addSubCategory = async (req, res) => {
         return res.status(HTTP.CREATED).json({"message" : "Sub category created successfuly!"})
     }
     catch(exception) {
-        console.log(exception);
         if (!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
@@ -57,7 +56,6 @@ const getSubCategories = async (req, res) => {
         });
     }
     catch(exception) {
-        console.log(exception);
         if (!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
@@ -71,6 +69,7 @@ const getSubCategories = async (req, res) => {
 const subCategoriesById = async (req, res) => {
     try {
         const {categoryId} = req.params;
+
 
         if(!categoryId) {
             throw new HTTPException("Category id does not exist", HTTP.BAD_REQUEST);
@@ -88,7 +87,6 @@ const subCategoriesById = async (req, res) => {
         });
     }
     catch(exception) {
-        console.log(exception);
         if (!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
