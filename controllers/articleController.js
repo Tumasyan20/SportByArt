@@ -234,31 +234,133 @@ const addArticle = async(req, res) => {
     }
 }
 
+//? Controller for update articles
+const updateArticle = async (req, res) => {
+    try {
 
-// const updateArticle = async (req, res) => {
-//     try {
-//         const {
-//             articleId,
-//             title,
-//             shortDesc,
-//             content,
-//             category,
-//             subCategory,
-//             image
-//         }
-//     }
-//     catch(exception) {
-//         if(!(exception instanceof HTTPException)) {
-//             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-//             exception.message = "ARTICLE: Somethind went wrong"
-//         }
-//         return res.status(exception.statusCode).json({ message: exception.message });
-//     }
-// }
+        // if(!checkRights(req.userData.userID, 5)) {
+        //     throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+        // }
+
+        const {
+            articleId,
+            title,
+            shortDesc,
+            content,
+            category,
+            subCategory,
+            image,
+            slider
+        } = req.body;
+
+        if(!articleId) {
+            throw new HTTPException("ARTICLE: Article Id does not exist", HTTP.BAD_REQUEST);
+        }
+
+
+        const article = await Article.findOne({"_id" : articleId})
+        .catch((err) => {
+            if(err) {
+                throw new HTTPException("ARTICLE: Wrong article id", HTTP.BAD_REQUEST);
+            }
+        })
+        .then((result) => {
+            if(result.length == 0) {
+                throw new HTTPException("ARTICLE: No results", HTTP.NOT_FOUND);
+            }
+
+            return result;
+        });
+
+
+        if(title) article.title = title;
+
+        if(shortDesc) article.title = title;
+
+        if(content) article.content = content;
+
+        if(category) article.category = category;
+
+        if(subCategory) article.subCategory = subCategory;
+
+        if(image) {
+
+            let imagePath = './uploads/images/' + Date.now() + '.jpeg';
+
+            const base64image = image.replace(/^data:([A-Za-z-+/]+);base64,/, '');
+            
+            fileType.fromBuffer(Buffer.from(base64image, 'base64'))
+            .then((result) => {
+                if(!result.mime.includes('image'))
+                    throw new HTTPException("ARTICLE: File is no image", HTTP.FORBIDDEN);
+            });
+            fs.writeFileSync(imagePath, base64image, {encoding: 'base64'});
+            fs.unlinkSync('.' + article.image);
+            imagePath = imagePath.substring(1);
+            article.image = imagePath;
+        }
+        
+        if(slider) {
+            for(let i in slider) {
+
+                if(slider[i].delete) {
+                    await Slider.findOneAndRemove({"image": slider[i].path});
+                }
+                else 
+                {
+                    const sliderImage = await Slider.findOne({"image" : slider.path})
+                    .catch(error => {
+                        if(error) {
+                            throw new HTTPException("ARTICLE: Wrong slider image path", HTTP.BAD_REQUEST);
+                        }
+                    })
+                    .then((result) => {
+                        if(result.length == 0) {
+                            throw new HTTPException("ARTICLE: No results", HTTP.NOT_FOUND);
+                        }
+    
+                        return result;
+                    });
+
+                    fs.unlinkSync('.' + sliderImage.path);
+
+                    let sliderImagePath = './uploads/slider/' + Date.now() + '.jpeg';
+
+                    const base64slider = slider[i].code.replace(/^data:([A-Za-z-+/]+);base64,/, '');
+                    
+                    fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
+                    .then((result) => {
+                        if(!result.mime.includes('image'))
+                            throw new HTTPException("ARTICLE: File is no image", HTTP.FORBIDDEN);
+                    });
+
+                    fs.writeFileSync(sliderImagePath, base64slider, {encoding: 'base64'});
+
+                    sliderImagePath = sliderImagePath.substring(1);
+                    slider.image = sliderImagePath;
+                    slider.save();
+                }
+            }
+        }
+
+        article.save();
+
+        return res.status(HTTP.OK).json({"message" : "Article updated successfuly"});
+    }
+    catch(exception) {
+        console.log(exception)
+        if(!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = "ARTICLE: Somethind went wrong"
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+}
 
 module.exports = {
     getArticles,
     getArticle,
+    updateArticle,
     searchArticle,
     addArticle
 }
