@@ -143,7 +143,6 @@ const userLogin = async (req, res) => {
     }
 }
 
-
 //? Controller for get all users
 const getUsers = async (req, res) => {
 

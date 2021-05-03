@@ -14,7 +14,7 @@ const addCategory =  async (req, res) => {
             throw new HTTPException("CATEGORY: No admin rights!", HTTP.FORBIDDEN);
         }
 
-        const { title, show_in_nav} = req.body;
+        let { title, show_in_nav} = req.body;
 
         if(!title) {
             throw new HTTPException("CATEGORY: Title does not exist", HTTP.BAD_REQUEST);
@@ -49,7 +49,7 @@ const getCategories = async (req, res) => {
 
         if(type == "navbar") {
             await Category.find({show_in_nav: true}).then(result => {
-                if(result.length == 0) {
+                if(result == null || result.length == 0) {
                     throw new HTTPException("CATEGORY: No results", HTTP.NOT_FOUND);
                 }
                 return res.status(HTTP.OK).json(result);
@@ -58,7 +58,7 @@ const getCategories = async (req, res) => {
 
         if(type == "another") {
             await Category.find({show_in_nav: false}).then(result => {
-                if(result.length == 0) {
+                if(result == null || result.length == 0) {
                     throw new HTTPException("CATEGORY: No results", HTTP.NOT_FOUND);
                 }
                 return res.status(HTTP.OK).json(result);
@@ -67,7 +67,7 @@ const getCategories = async (req, res) => {
 
         if(type == "all") {
             await Category.find({}).then(result => {
-                if(result.length == 0) {
+                if(result == null || result.length == 0) {
                     throw new HTTPException("CATEGORY: No results", HTTP.NOT_FOUND);
                 }
                 return res.status(HTTP.OK).json(result);
@@ -101,7 +101,7 @@ const getCategory = async (req, res) => {
             await Article.find({"category_id" : categoryId}, 
                 "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name"
             ).then(result => {
-                if(result.length == 0) {
+                if(result == null || result.length == 0) {
                     throw new HTTPException("CATEGORY: No results!", HTTP.NOT_FOUND)
                 }
                 return res.status(HTTP.OK).json(result);
@@ -116,7 +116,7 @@ const getCategory = async (req, res) => {
             )
             .skip((page * limit) - limit).limit(limit)
             .sort('-publication').then(result => {
-                if(result.length == 0) {
+                if(result == null || result.length == 0) {
                     throw new HTTPException("CATEGORY: No results!", HTTP.NOT_FOUND)
                 }
                 return res.status(HTTP.OK).json(result);
@@ -134,8 +134,45 @@ const getCategory = async (req, res) => {
     }
 }
 
+//? Controller for delete category
+const deleteCategory = async (req, res) => {
+    try {
+        if(!checkRights(req.userData.userID, 5)) {
+            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+        }
+
+        const category = await Category.findById({'_id' : req.params.id})
+        .catch(exception => {
+            if(exception) {
+                throw new HTTPException("Category: Wrong id", HTTP.BAD_REQUEST);
+            }
+        })
+        .then((result) => {
+            if(result == null || result.length == 0) {
+                throw new HTTPException("Category: No result!", HTTP.NOT_FOUND);
+            }
+
+            return result;
+        });
+        
+
+        await category.deleteOne();
+        return res.status(HTTP.OK).json({'message' : 'Success'})
+
+    }
+    catch(exception) {
+        if(!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = "ARTICLE: Somethind went wrong"
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+}
+
+
 module.exports = {
     addCategory,
     getCategories,
-    getCategory
+    getCategory,
+    deleteCategory
 }

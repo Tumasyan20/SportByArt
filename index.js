@@ -1,12 +1,9 @@
 const express       = require('express');           //? import project main framework
 const bodyParser    = require('body-parser');       //? import lib for work with request body
 const mongoose      = require('mongoose');          //? ORM for easy wotrk with mongoDB
-const multer        = require('multer');
-
 
 const { PORT, DB_URL } = require('./config');           //? import variables from config file
 const router           = require('./routers/router');   //? import project main router
-const adminRouter      = require('./admin/router');     //? import project admin router
 
 const app = express();
 
@@ -61,4 +58,3 @@ app.use(function(req, res, next) {
 app.use('/uploads', express.static('uploads'));     //? static files dir
 
 app.use('/', router);                               //? connect project main router
-app.use('/admin', adminRouter);                     //? connect project admin router

@@ -10,14 +10,32 @@ const checkRights           = require('../lib/checkRights');
 //? Controller for get all video list
 const getVideos = async (req, res) => {
     try {
-        await Video.find({}).then((result) => {
-            //todo video list pagination
-            if(!result) {
-                throw new HTTPException("There are now videos", HTTP.NOT_FOUND);
-            }
-    
-            return res.status(HTTP.OK).json(result);
-        });
+        let page = req.params.page;
+
+        if(page == 'all') {
+            await Video.find({}).then((result) => {
+                if(!result) {
+                    throw new HTTPException("There are now videos", HTTP.NOT_FOUND);
+                }
+        
+                return res.status(HTTP.OK).json(result);
+            });
+        }
+        else {
+            page = parseInt(page);
+            const limit = 10;
+            
+            await Video.find({})
+            .skip((page * limit) - limit).limit(limit)
+            .then((result) => {
+                if(!result) {
+                    throw new HTTPException("There are now videos", HTTP.NOT_FOUND);
+                }
+        
+                return res.status(HTTP.OK).json(result);
+            });
+        }
+        
     }
     catch (exception) {
         if (!(exception instanceof HTTPException)) {
