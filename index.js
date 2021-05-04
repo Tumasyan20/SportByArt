@@ -1,6 +1,8 @@
 const express       = require('express');           //? import project main framework
 const bodyParser    = require('body-parser');       //? import lib for work with request body
 const mongoose      = require('mongoose');          //? ORM for easy wotrk with mongoDB
+const compression   = require('compression');       //? lib for compress code
+const helmet        = require('helmet');            //? lib for protect code
 
 const { PORT, DB_URL } = require('./config');           //? import variables from config file
 const router           = require('./routers/router');   //? import project main router
@@ -27,6 +29,8 @@ async function start() {
 start();
 
 
+app.use(compression());   //? Compress all routes
+app.use(helmet());
 
 //? use body parses for encode request body
 app.use(bodyParser.urlencoded({
