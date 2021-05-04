@@ -3,6 +3,7 @@ const Article               = require('../models/Articles');
 
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
+const checkRights           = require('../lib/checkRights');
 
 
 //? controller for get article comments by sended article id
@@ -101,8 +102,45 @@ const addComment = async (req, res) => {
     }
 }
 
+//? Controller for delete comment
+const deleteComment = async (req, res) => {
+    try {
+        if(!checkRights(req.userData.userID, 5)) {
+            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+        }
+
+        const comment = await Comment.findById({'_id' : req.params.id})
+        .catch(exception => {
+            if(exception) {
+                throw new HTTPException("COMMENT: Wrong id", HTTP.BAD_REQUEST);
+            }
+        })
+        .then((result) => {
+            if(result == null || result.length == 0) {
+                throw new HTTPException("COMMENT: No result!", HTTP.NOT_FOUND);
+            }
+
+            return result;
+        });
+        
+
+        await comment.deleteOne();
+        return res.status(HTTP.OK).json({'message' : 'Success'})
+
+    }
+    catch(exception) {
+        if(!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = "ARTICLE: Somethind went wrong"
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+}
+
+
 module.exports = {
     getComment,
     getComments,
-    addComment
+    addComment,
+    deleteComment
 }
