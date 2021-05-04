@@ -44,7 +44,7 @@ const getVideos = async (req, res) => {
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }
-};
+}
 
 //? Controller for get category video list
 const getVideosByCat = async (req, res) => {
@@ -71,7 +71,7 @@ const getVideosByCat = async (req, res) => {
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }
-};
+}
 
 
 //? Controller for add new video
@@ -155,7 +155,83 @@ const addVideo = async (req, res) => {
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }
-};
+}
+
+//? Controller for update video
+const updateVideo = async (req, res) => {
+    try{
+        if(!checkRights(req.userData.userID, 5)) {
+            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+        }
+
+        const {
+            video_id,
+            title,
+            author_id,
+            description,
+            video,
+            category_id
+        } = req.body;
+
+        const author = await User.findById({'_id' : author_id})
+        .catch(err => {if(err) throw new HTTPException("Wrong author id", HTTP.BAD_REQUEST)})
+        .then(result => {
+            if(result == null || result.length == 0) {
+                throw new HTTPException("Cant find any user by that id", HTTP.BAD_REQUEST)
+            }
+
+            return result;
+        });
+
+        const category = await Category.findById({'_id' : category_id})
+        .catch(err => {if(err) throw new HTTPException("Wrong id", HTTP.BAD_REQUEST)})
+        .then(result => {
+            if(result == null || result.length == 0) {
+                throw new HTTPException("Cant find any category by that id", HTTP.NOT_FOUND);
+            }
+
+            return result;
+        });
+
+        const updatedVideo = await Video.findById({'_id' : video_id})
+        .catch(err => {if(err) throw new HTTPException("Wrong id", HTTP.BAD_REQUEST)})
+        .then((result) => {
+            if(result == null || result.length == 0) {
+                throw new HTTPException("No result", HTTP.BAD_REQUEST);
+            }
+
+            return result;
+        });
+
+        if(title) updatedVideo.title = title;
+
+        if(author_id) {
+            updatedVideo.author_id = author_id;
+            updatedVideo.author_username = author.username;
+        }
+
+        if(description) updatedVideo.description = description;
+
+        if(video) updatedVideo.video = video;
+
+        if(category_id) {
+            updatedVideo.category_id = category_id
+            updatedVideo.category_name = category.title
+        }
+
+
+        updatedVideo.save();
+
+        return res.status(HTTP.OK).json({'message' : "Success!"});
+    }
+    catch(exception) {
+        if(!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = "ARTICLE: Somethind went wrong"
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+}
 
 //? Controller for delete video
 const deleteVideo = async (req, res) => {
@@ -197,5 +273,6 @@ module.exports = {
     getVideos,
     getVideosByCat,
     addVideo,
+    updateVideo,
     deleteVideo
 }

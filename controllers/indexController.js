@@ -8,7 +8,7 @@ const index = async (req, res) => {
     try {
         const categories = await Category.find({show_in_nav: true}).then((result) => {
             if(result.length == 0) {
-                throw new HTTPException("INDEX: There are no categories", HTTP.NOT_FOUND);
+                throw new HTTPException("There are no categories", HTTP.NOT_FOUND);
             }
             return result;
         });
@@ -54,7 +54,7 @@ const index = async (req, res) => {
         if(!(exception instanceof HTTPException)) {
             console.log(exception)
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-            exception.message = "ARTICLE: Somethind went wrong"
+            exception.message = "Somethind went wrong"
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }

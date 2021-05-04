@@ -10,7 +10,7 @@ const checkRights           = require('../lib/checkRights');        //? function
 const addSubCategory = async (req, res) => {
     try {
         if(!checkRights(req.userData.userID, 5)) {
-            throw new HTTPException("CATEGORY: No admin rights!", HTTP.FORBIDDEN);
+            throw new HTTPException("No admin rights!", HTTP.FORBIDDEN);
         }
 
         const {
@@ -48,7 +48,6 @@ const addSubCategory = async (req, res) => {
     }
 }
 
-
 //? Controller for get all sub categories list
 const getSubCategories = async (req, res) => {
     
@@ -68,7 +67,6 @@ const getSubCategories = async (req, res) => {
         return res.status(exception.statusCode).json({ message: exception.message });
     }
 }
-
 
 //? Controller for get sub category by category id
 const subCategoriesById = async (req, res) => {
@@ -100,22 +98,59 @@ const subCategoriesById = async (req, res) => {
     }
 }
 
+//? Controller for update category
+const updateSubCategory = async (req, res) => {
+    try{
+        if(!checkRights(req.userData.userID, 5)) {
+            throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
+        }
+
+        const {
+            subCategory_id,
+            title,
+        } = req.body;
+
+        const subCategory = await SubCategory.findById({'_id' : subCategory_id})
+        .catch(err => {if(err) throw new HTTPException("Wrong id", HTTP.BAD_REQUEST)})
+        .then(result => {
+            if(result == null || result.length == 0) {
+                throw new HTTPException("No result", HTTP.NOT_FOUND);
+            }
+
+            return result;
+        });
+
+        if(title) subCategory.title = title;
+
+        subCategory.save();
+
+        return res.status(HTTP.OK).json({'message' : "Success!"});
+    }
+    catch(exception) {
+        if(!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = "Somethind went wrong"
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+}
+
 //? Controller for delete sub category
 const deleteSubCategory = async (req, res) => {
     try {
         if(!checkRights(req.userData.userID, 5)) {
-            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+            throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
         }
 
         const subCategory = await SubCategory.findById({'_id' : req.params.id})
         .catch(exception => {
             if(exception) {
-                throw new HTTPException("SUB-CATEGORY: Wrong id", HTTP.BAD_REQUEST);
+                throw new HTTPException("Wrong id", HTTP.BAD_REQUEST);
             }
         })
         .then((result) => {
             if(result == null || result.length == 0) {
-                throw new HTTPException("SUB-CATEGORY: No result!", HTTP.NOT_FOUND);
+                throw new HTTPException("No result!", HTTP.NOT_FOUND);
             }
 
             return result;
@@ -129,7 +164,7 @@ const deleteSubCategory = async (req, res) => {
     catch(exception) {
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-            exception.message = "ARTICLE: Somethind went wrong"
+            exception.message = "Somethind went wrong"
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }
@@ -139,5 +174,6 @@ module.exports = {
     addSubCategory,
     getSubCategories,
     subCategoriesById,
+    updateSubCategory,
     deleteSubCategory
 }

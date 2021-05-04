@@ -11,11 +11,11 @@ const getComment = async (req, res) => {
     try{
         const {articleId} = req.params;
         if(!articleId) {
-            throw new HTTPException("COMMENT: Article id does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Article id does not exist", HTTP.BAD_REQUEST);
         }
 
         await Article.findById({"_id" : articleId}).catch(error => {
-            throw new HTTPException("COMMENT: Article by that id does not found", HTTP.NOT_FOUND);
+            throw new HTTPException("Article by that id does not found", HTTP.NOT_FOUND);
         });
 
         await Comment.find({ "article" : articleId }).then((result) => {
@@ -32,13 +32,12 @@ const getComment = async (req, res) => {
     }
 }
 
-
 //? controller for get all comments
 const getComments = async (req, res) => {
     try {
         await Comment.find({}).then((result) => {
             if(!result) {
-                return res.status(HTTP.NOT_FOUND).json({"message" : "COMMENT: There are no comments"});
+                return res.status(HTTP.NOT_FOUND).json({"message" : "There are no comments"});
             }
             return res.status(HTTP.OK).json(result);
         });
@@ -50,7 +49,7 @@ const getComments = async (req, res) => {
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }
-};
+}
 
 
 //? controller for add new comments
@@ -64,23 +63,23 @@ const addComment = async (req, res) => {
         } = req.body;
 
         if(!articleId) {
-            throw new HTTPException("COMMENT: ArticleId does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("ArticleId does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!commentator_username) {
-            throw new HTTPException("COMMENT: Commentator username does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Commentator username does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!commentator_email) {
-            throw new HTTPException("COMMENT: Commentator email does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Commentator email does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!comment_content) {
-            throw new HTTPException("COMMENT: Comment content does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Comment content does not exist", HTTP.BAD_REQUEST);
         }
 
         await Article.findById({"_id" : articleId}).catch(error => {
-            throw new HTTPException("COMMENT: Article by that id does not found", HTTP.NOT_FOUND);
+            throw new HTTPException("Article by that id does not found", HTTP.NOT_FOUND);
         });
 
         const comment = new Comment({
@@ -106,18 +105,18 @@ const addComment = async (req, res) => {
 const deleteComment = async (req, res) => {
     try {
         if(!checkRights(req.userData.userID, 5)) {
-            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+            throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
         }
 
         const comment = await Comment.findById({'_id' : req.params.id})
         .catch(exception => {
             if(exception) {
-                throw new HTTPException("COMMENT: Wrong id", HTTP.BAD_REQUEST);
+                throw new HTTPException("Wrong id", HTTP.BAD_REQUEST);
             }
         })
         .then((result) => {
             if(result == null || result.length == 0) {
-                throw new HTTPException("COMMENT: No result!", HTTP.NOT_FOUND);
+                throw new HTTPException("No result!", HTTP.NOT_FOUND);
             }
 
             return result;
@@ -131,7 +130,7 @@ const deleteComment = async (req, res) => {
     catch(exception) {
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-            exception.message = "ARTICLE: Somethind went wrong"
+            exception.message = "Somethind went wrong"
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }

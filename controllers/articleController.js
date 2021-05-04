@@ -27,7 +27,7 @@ const getArticles = async (req, res) => {
             )
             .sort('-publication').then((result) => {
                 if(result == null || result.length == 0) {
-                    throw new HTTPException("ARTICLE: No results!", HTTP.NOT_FOUND);
+                    throw new HTTPException("No results!", HTTP.NOT_FOUND);
                 }
 
                 return res.status(HTTP.OK).json(result);
@@ -45,7 +45,7 @@ const getArticles = async (req, res) => {
             .skip((page * limit) - limit).limit(limit)
             .sort('-publication').then((result) => {
                 if(result == null || result.length == 0) {
-                    throw new HTTPException("ARTICLE: No results!", HTTP.NOT_FOUND);
+                    throw new HTTPException("No results!", HTTP.NOT_FOUND);
                 }
 
                 return res.status(HTTP.OK).json(result);
@@ -70,11 +70,11 @@ const getArticle = async (req, res) => {
             "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name"
         )
         .catch(error => {
-            throw new HTTPException("ARTICLE: Wrong id", HTTP.NOT_FOUND)
+            throw new HTTPException("Wrong id", HTTP.NOT_FOUND)
         })
         .then((result) => {
             if( result == null || result.length == 0) {
-                throw new HTTPException("ARTICLE: Can't find any article by your id", HTTP.NOT_FOUND)
+                throw new HTTPException("Can't find any article by your id", HTTP.NOT_FOUND)
             }
 
             return result;
@@ -109,7 +109,7 @@ const searchArticle = async (req, res) => {
         await Article.find({ title: {$regex: '.*' + req.body.title + '*.', $options: 'i'} })
         .then((result) => {
             if(result == null || result.length == 0) {
-                throw new HTTPException("ARTICLE: No results!", HTTP.NOT_FOUND)
+                throw new HTTPException("No results!", HTTP.NOT_FOUND)
             }
 
             return res.status(HTTP.OK).json(result);
@@ -152,39 +152,39 @@ const addArticle = async(req, res) => {
 
 
         if(!title) {
-            throw new HTTPException("ARTICLE: Title does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Title does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!shortDesc) {
-            throw new HTTPException("ARTICLE: Short description does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Short description does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!content) {
-            throw new HTTPException("ARTICLE: Content does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Content does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!category) {
-            throw new HTTPException("ARTICLE: Category id does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Category id does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!subCategory) {
-            throw new HTTPException("ARTICLE: Sub category id does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Sub category id does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!image) {
-            throw new HTTPException("ARTICLE: Image does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Image does not exist", HTTP.BAD_REQUEST);
         }
 
         if(!slider) {
-            throw new HTTPException("ARTICLE: Slider does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Slider does not exist", HTTP.BAD_REQUEST);
         }
 
         const categoryInfo = await Category.findById({"_id" : category}).catch(error => {
-            throw new HTTPException("ARTICLE: Wrong category id", HTTP.NOT_FOUND);
+            throw new HTTPException("Wrong category id", HTTP.NOT_FOUND);
         });
 
         const subCategoryInfo = await SubCategory.findById({"_id" : subCategory}).catch(error => {
-            throw new HTTPException("ARTICLE: Wrong Sub category id", HTTP.NOT_FOUND);
+            throw new HTTPException("Wrong Sub category id", HTTP.NOT_FOUND);
         });
 
         let imagePath = './uploads/images/' + Date.now() + '.jpeg';
@@ -224,7 +224,7 @@ const addArticle = async(req, res) => {
             fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
             .then((result) => {
                 if(!result.mime.includes('image'))
-                    throw new HTTPException("ARTICLE: File is no image", HTTP.FORBIDDEN);
+                    throw new HTTPException("File is no image", HTTP.FORBIDDEN);
             });
             fs.writeFileSync(sliderPath, base64slider, {encoding: 'base64'});
             sliderPath = sliderPath.substring(1);
@@ -254,7 +254,7 @@ const updateArticle = async (req, res) => {
     try {
 
         if(!checkRights(req.userData.userID, 5)) {
-            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+            throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
         }
 
         const {
@@ -269,19 +269,19 @@ const updateArticle = async (req, res) => {
         } = req.body;
 
         if(!articleId) {
-            throw new HTTPException("ARTICLE: Article Id does not exist", HTTP.BAD_REQUEST);
+            throw new HTTPException("Article Id does not exist", HTTP.BAD_REQUEST);
         }
 
 
-        const article = await Article.findOne({"_id" : articleId})
+        let article = await Article.findOne({"_id" : articleId})
         .catch((err) => {
             if(err) {
-                throw new HTTPException("ARTICLE: Wrong article id", HTTP.BAD_REQUEST);
+                throw new HTTPException("Wrong article id", HTTP.BAD_REQUEST);
             }
         })
         .then((result) => {
             if(result.length == 0) {
-                throw new HTTPException("ARTICLE: No results", HTTP.NOT_FOUND);
+                throw new HTTPException("No results", HTTP.NOT_FOUND);
             }
 
             return result;
@@ -307,7 +307,7 @@ const updateArticle = async (req, res) => {
             fileType.fromBuffer(Buffer.from(base64image, 'base64'))
             .then((result) => {
                 if(!result.mime.includes('image'))
-                    throw new HTTPException("ARTICLE: File is no image", HTTP.FORBIDDEN);
+                    throw new HTTPException("File is no image", HTTP.FORBIDDEN);
             });
             fs.writeFileSync(imagePath, base64image, {encoding: 'base64'});
             fs.unlinkSync('.' + article.image);
@@ -326,12 +326,12 @@ const updateArticle = async (req, res) => {
                     const sliderImage = await Slider.findOne({"image" : slider.path})
                     .catch(error => {
                         if(error) {
-                            throw new HTTPException("ARTICLE: Wrong slider image path", HTTP.BAD_REQUEST);
+                            throw new HTTPException("Wrong slider image path", HTTP.BAD_REQUEST);
                         }
                     })
                     .then((result) => {
                         if(result.length == 0) {
-                            throw new HTTPException("ARTICLE: No results", HTTP.NOT_FOUND);
+                            throw new HTTPException("No results", HTTP.NOT_FOUND);
                         }
     
                         return result;
@@ -346,7 +346,7 @@ const updateArticle = async (req, res) => {
                     fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
                     .then((result) => {
                         if(!result.mime.includes('image'))
-                            throw new HTTPException("ARTICLE: File is no image", HTTP.FORBIDDEN);
+                            throw new HTTPException("File is no image", HTTP.FORBIDDEN);
                     });
 
                     fs.writeFileSync(sliderImagePath, base64slider, {encoding: 'base64'});
@@ -363,10 +363,9 @@ const updateArticle = async (req, res) => {
         return res.status(HTTP.OK).json({"message" : "Article updated successfuly"});
     }
     catch(exception) {
-        console.log(exception)
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-            exception.message = "ARTICLE: Somethind went wrong"
+            exception.message = "Somethind went wrong"
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }
@@ -376,18 +375,18 @@ const updateArticle = async (req, res) => {
 const deleteArticle = async (req, res) => {
     try {
         if(!checkRights(req.userData.userID, 5)) {
-            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+            throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
         }
 
         const article = await Article.findById({'_id' : req.params.id})
         .catch(exception => {
             if(exception) {
-                throw new HTTPException("ARTICLE: Wrong id", HTTP.BAD_REQUEST);
+                throw new HTTPException("Wrong id", HTTP.BAD_REQUEST);
             }
         })
         .then((result) => {
             if(result == null || result.length == 0) {
-                throw new HTTPException("ARTICLE: No result!", HTTP.NOT_FOUND);
+                throw new HTTPException("No result!", HTTP.NOT_FOUND);
             }
 
             return result;
@@ -401,7 +400,7 @@ const deleteArticle = async (req, res) => {
     catch(exception) {
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-            exception.message = "ARTICLE: Somethind went wrong"
+            exception.message = "Somethind went wrong"
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }
