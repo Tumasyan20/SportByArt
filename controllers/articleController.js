@@ -2,6 +2,7 @@
 const fs = require('fs');
 const fileType = require('file-type');
 
+
 //? Connecting db models
 const Article               = require('../models/Articles');
 const User                  = require('../models/Users');
@@ -10,6 +11,7 @@ const SubCategory           = require('../models/SubCategories');
 const Slider                 = require('../models/Slider');
 
 
+//? Connecting costum modules
 const { HTTP }              = require('../lib/constants');          //? exception status codes for response
 const { HTTPException }     = require('../lib/HTTPexception');      //? custom js exception 
 const checkRights           = require('../lib/checkRights');        //? function for check user rights
@@ -84,7 +86,7 @@ const getArticle = async (req, res) => {
 
         await Slider.find({"article" : article._id}).then((result) => {
             if(result != null || result.length != 0) {
-                for(i of result) {
+                for(let i of result) {
                     const id = i._id
                     slider[id] = i
                 }
@@ -129,13 +131,13 @@ const searchArticle = async (req, res) => {
 const addArticle = async(req, res) => {
     try{
         if(!checkRights(req.userData.userID, 5)) {
-            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+            throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
         }
 
         const authorInfo = await User.findById({"_id" : req.userData.userID})
         .then((result) => {
             if(result.length == 0) {
-                throw new HTTPException("ARTICLE: There are no user by that id", HTTP.BAD_REQUEST);
+                throw new HTTPException("There are no user by that id", HTTP.BAD_REQUEST);
             }
             return result;
         })
@@ -194,7 +196,7 @@ const addArticle = async(req, res) => {
         fileType.fromBuffer(Buffer.from(base64image, 'base64'))
         .then((result) => {
             if(!result.mime.includes('image'))
-                throw new HTTPException("ARTICLE: File is no image", HTTP.FORBIDDEN);
+                throw new HTTPException("File is no image", HTTP.FORBIDDEN);
         });
         fs.writeFileSync(imagePath, base64image, {encoding: 'base64'});
         imagePath = imagePath.substring(1);
@@ -216,7 +218,7 @@ const addArticle = async(req, res) => {
 
         await article.save();
 
-        for(i in slider) {
+        for(let i in slider) {
             let sliderPath = './uploads/slider/' + Date.now() + '.jpeg';
 
             const base64slider = slider[i].replace(/^data:([A-Za-z-+/]+);base64,/, '');
@@ -243,7 +245,7 @@ const addArticle = async(req, res) => {
     catch(exception) {
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-            exception.message = "ARTICLE: Somethind went wrong"
+            exception.message = "Somethind went wrong"
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }

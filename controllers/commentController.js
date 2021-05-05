@@ -1,6 +1,8 @@
+//? Connecting db models
 const Comment               = require('../models/Comments');
 const Article               = require('../models/Articles');
 
+//? Connecting custom moduls
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
 const checkRights           = require('../lib/checkRights');

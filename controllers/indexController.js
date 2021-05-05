@@ -1,6 +1,8 @@
+//? Connecting db models
 const Article           = require('../models/Articles');
 const Category          = require('../models/Categories');
 
+//? Connecting custom moduls
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
 
@@ -22,7 +24,7 @@ const index = async (req, res) => {
             finalResult.lastet_news = result;
         });
 
-        for(i in categories) {
+        for(let i in categories) {
             await Article.find({category_id: categories[i]._id})
             .limit(6)
             .sort('-publication')

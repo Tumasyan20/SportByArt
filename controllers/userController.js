@@ -1,21 +1,26 @@
-const User                  = require("../models/Users");
+//? Connecting node moduls
 const bcrypt                = require("bcrypt");
 const jwt                   = require("jsonwebtoken");
 
+//? Connecting db model(s)
+const User                  = require("../models/Users");
+
+//? Connecting custom models
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
 const checkRights           = require('../lib/checkRights');
 const config                = require('../config');
+const emailValidate         = require('../lib/emailValidate');
 
 
 //? controller for register new users
 const registerUser = async (req, res) => {
-    
-    if(!checkRights(req.userData.userID, 5)) {
-        throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
-    }
-
     try {
+
+        if(!checkRights(req.userData.userID, 5)) {
+            throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
+        }
+
         const {
             username,
             email,
@@ -34,7 +39,9 @@ const registerUser = async (req, res) => {
             throw new HTTPException("Missed email", HTTP.BAD_REQUEST);
         }
 
-        //todo email validation
+        if(emailValidate(email) == false) {
+            throw new HTTPException("Wrong email", HTTP.BAD_REQUEST);
+        }
 
         if(!password) {
             throw new HTTPException("Missed password", HTTP.BAD_REQUEST);
@@ -228,18 +235,18 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         if(!checkRights(req.userData.userID, 5)) {
-            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+            throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
         }
 
         const user = await User.findById({'_id' : req.params.id})
         .catch(exception => {
             if(exception) {
-                throw new HTTPException("User: Wrong id", HTTP.BAD_REQUEST);
+                throw new HTTPException("Wrong id", HTTP.BAD_REQUEST);
             }
         })
         .then((result) => {
             if(result == null || result.length == 0) {
-                throw new HTTPException("User: No result!", HTTP.NOT_FOUND);
+                throw new HTTPException("No result!", HTTP.NOT_FOUND);
             }
 
             return result;
@@ -253,7 +260,7 @@ const deleteUser = async (req, res) => {
     catch(exception) {
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-            exception.message = "ARTICLE: Somethind went wrong"
+            exception.message = "Somethind went wrong"
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }

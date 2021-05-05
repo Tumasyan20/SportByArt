@@ -29,10 +29,10 @@ async function start() {
 start();
 
 
-app.use(compression());   //? Compress all routes
-app.use(helmet());
+app.use(compression());     //? Compress all routes
+app.use(helmet());          //? protect http requests
 
-//? use body parses for encode request body
+//? using body parses for encode request body
 app.use(bodyParser.urlencoded({
     limit: '500mb',
     extended: true

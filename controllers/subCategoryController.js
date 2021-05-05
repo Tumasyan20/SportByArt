@@ -1,6 +1,9 @@
+//? Connecting db models
 const SubCategory           = require("../models/SubCategories");
 const Category              = require('../models/Categories');
+const Article               = require('../models/Articles');
 
+//? Connecting custom moduls
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
 const checkRights           = require('../lib/checkRights');        //? function for check user rights
@@ -55,6 +58,25 @@ const getSubCategories = async (req, res) => {
         await SubCategory.find({}).then((result) => {
             if(!result) {
                 throw new HTTPException("There are no sub category", HTTP.NOT_FOUND);
+            }
+            return res.status(HTTP.OK).json(result);
+        });
+    }
+    catch(exception) {
+        if (!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = 'Something went wrong';
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+}
+
+//? controller for get articles by sub category
+const getArticlesBySubCategory = async (req, res) => {
+    try {
+        await Article.find({"subCategory_id" : req.params.id}).then((result) => {
+            if(!result) {
+                throw new HTTPException("No result!", HTTP.NOT_FOUND);
             }
             return res.status(HTTP.OK).json(result);
         });
@@ -173,6 +195,7 @@ const deleteSubCategory = async (req, res) => {
 module.exports = {
     addSubCategory,
     getSubCategories,
+    getArticlesBySubCategory,
     subCategoriesById,
     updateSubCategory,
     deleteSubCategory

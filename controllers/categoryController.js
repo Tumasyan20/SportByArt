@@ -2,6 +2,8 @@
 const Category  = require('../models/Categories');
 const Article   = require('../models/Articles');
 
+
+//? Connecting custom models
 const { HTTP }              = require('../lib/constants');          //? exception status codes for response
 const { HTTPException }     = require('../lib/HTTPexception');      //? custom js exception 
 const checkRights           = require('../lib/checkRights');        //? function for check user rights
@@ -203,7 +205,7 @@ const deleteCategory = async (req, res) => {
     catch(exception) {
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-            exception.message = "ARTICLE: Somethind went wrong"
+            exception.message = "Somethind went wrong"
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }

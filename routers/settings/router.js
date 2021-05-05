@@ -3,8 +3,8 @@ const router    = express.Router();         //? create express.js router variabl
 
 const Authenticate = require('../../middlewares/authenticate');     //? connecting authenticate middleware
 
+const settingsController = require('../../controllers/settingsController.js');  //? connecting settings controller
 
-const settingsController = require('../../controllers/settingsController.js'); 
 
 router.get('/', Authenticate, settingsController.getSettings);        //? Route for get all site settings
 router.put('/', Authenticate, settingsController.updateSettings);     //? Route for update settings

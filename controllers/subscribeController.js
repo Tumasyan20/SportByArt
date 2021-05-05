@@ -1,18 +1,22 @@
+//? Connecting node module(s)
 const nodemailer = require('nodemailer');
 
+//? Connecting db models
 const Subscribe = require('../models/Subscribe');
 const Settings  = require('../models/Settings');
 
+//? Connecting custom models
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
 const checkRights           = require('../lib/checkRights');
+const emailValidate         = require('../lib/emailValidate');
 
 
 //? Controller for get subscribers list
 const getSubscriberList = async (req, res) => {
     try {
         if(!checkRights(req.userData.userID, 5)) {
-            throw new HTTPException("ARTICLE: No admin rights for add new article", HTTP.FORBIDDEN);
+            throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
         }
 
         await Subscribe.find().then((result) => {
@@ -22,15 +26,8 @@ const getSubscriberList = async (req, res) => {
 
             return res.status(HTTP.OK).json(result)
         });
-
-        const subscribe = new Subscribe({email});
-        subscribe.save();
-
-        return res.status(HTTP.OK).json({'message' : "Success"});
     }
     catch(exception) {
-        console.log(exception)
-
         if (!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
@@ -44,9 +41,13 @@ const subscribe = async (req, res) => {
     try {
         const email = req.params.email;
 
+        if(emailValidate(email) == false) {
+            throw new HTTPException("Wrong email", HTTP.BAD_REQUEST);
+        }
+
         await Subscribe.find({"email": email}).then((result) => {
             if(result.length != 0) {
-                throw new HTTPException("Email already exist");
+                throw new HTTPException("Email already exist", HTTP.FORBIDDEN);
             }
         });
 
@@ -56,8 +57,6 @@ const subscribe = async (req, res) => {
         return res.status(HTTP.OK).json({'message' : "Success"});
     }
     catch(exception) {
-        console.log(exception)
-
         if (!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';

@@ -1,5 +1,7 @@
+//? Connecting db model(s)
 const Settings = require('../models/Settings');
 
+//? connecting custom moduls
 const { HTTP }              = require('../lib/constants');
 const { HTTPException }     = require('../lib/HTTPexception');
 const checkRights           = require('../lib/checkRights');

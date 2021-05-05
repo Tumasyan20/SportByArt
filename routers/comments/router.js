@@ -3,7 +3,7 @@ const router    = express.Router();
 
 const Authenticate = require('../../middlewares/authenticate');       //? Connecting authenticate middleware
 
-const commentController = require('../../controllers/commentController');   //? Connect comment controller
+const commentController = require('../../controllers/commentController');       //? Connect comment controller
 
 router.get('/list/:articleId', commentController.getComment);                   //? Route for get comment list by article id
 router.get('/list', commentController.getComments);                             //? route for get all cooment list
