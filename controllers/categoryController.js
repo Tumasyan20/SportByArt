@@ -136,6 +136,29 @@ const getCategory = async (req, res) => {
     }
 }
 
+//? Controller for get category info
+const getCategoryInfo = async (req, res) => {
+    try {
+        await Category.findById({"_id" : req.params.id}).catch(error => {
+            throw new HTTPException("Wrong id", HTTP.BAD_REQUEST);
+        })
+        .then((result) => {
+            if(result == null || result.length == 0) {
+                throw new HTTPException("No result!", HTTP.NOT_FOUND);
+            }
+
+            return res.status(HTTP.OK).json(result);
+        });
+    }
+    catch(exception) {
+        if (!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = 'Something went wrong';
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+}
+
 //? Controller for update category
 const updateCategory = async (req, res) => {
     try{
@@ -216,6 +239,7 @@ module.exports = {
     addCategory,
     getCategories,
     getCategory,
+    getCategoryInfo,
     updateCategory,
     deleteCategory
 }

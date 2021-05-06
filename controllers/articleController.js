@@ -68,9 +68,7 @@ const getArticles = async (req, res) => {
 //? Controller for get article by sended id with get parametrs
 const getArticle = async (req, res) => {
     try{
-        const article = await Article.findById({'_id' : req.params.id}, 
-            "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name"
-        )
+        const article = await Article.findById({'_id' : req.params.id})
         .catch(error => {
             throw new HTTPException("Wrong id", HTTP.NOT_FOUND)
         })
