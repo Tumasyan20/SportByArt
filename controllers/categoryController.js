@@ -113,7 +113,7 @@ const getCategory = async (req, res) => {
             page = parseInt(page);
             const limit = 10;
 
-            await Article.find({"category_id" : categoryId}, 
+            const articles = await Article.find({"category_id" : categoryId}, 
                 "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name"
             )
             .skip((page * limit) - limit).limit(limit)
@@ -121,11 +121,13 @@ const getCategory = async (req, res) => {
                 if(result == null || result.length == 0) {
                     throw new HTTPException("No results!", HTTP.NOT_FOUND)
                 }
-                return res.status(HTTP.OK).json(result);
+                return result;
             });
-        }
 
-        
+            const count = await Article.countDocuments();
+            const pageCount = Math.ceil(count/limit);
+            return res.status(HTTP.OK).json({'pageCount' : pageCount, articles});
+        }   
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {

@@ -97,12 +97,45 @@ const getSubCategoryInfo = async (req, res) => {
 //? controller for get articles by sub category
 const getArticlesBySubCategory = async (req, res) => {
     try {
-        await Article.find({"subCategory_id" : req.params.id}).then((result) => {
-            if(!result) {
-                throw new HTTPException("No result!", HTTP.NOT_FOUND);
-            }
-            return res.status(HTTP.OK).json(result);
+        let {id, page} = req.params;
+        
+        if(!id) {
+            throw new HTTPException("id does not exist", HTTP.NOT_FOUND);
+        }
+
+        await SubCategory.findById({"_id" : id}).catch(error=> {
+            throw new HTTPException("Wrong id", HTTP.NOT_FOUND)
         });
+
+        if(page == 'all') {
+            await Article.find({"subCategory_id" : id}, 
+                "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name"
+            ).then(result => {
+                if(result == null || result.length == 0) {
+                    throw new HTTPException("No results!", HTTP.NOT_FOUND)
+                }
+                return res.status(HTTP.OK).json(result);
+            });
+        }
+        else {
+            page = parseInt(page);
+            const limit = 10;
+
+            const articles = await Article.find({"subCategory_id" : id}, 
+                "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name"
+            )
+            .skip((page * limit) - limit).limit(limit)
+            .sort('-publication').then(result => {
+                if(result == null || result.length == 0) {
+                    throw new HTTPException("No results!", HTTP.NOT_FOUND)
+                }
+                return result;
+            });
+
+            const count = await Article.countDocuments();
+            const pageCount = Math.ceil(count/limit);
+            return res.status(HTTP.OK).json({'pageCount' : pageCount, articles});
+        };
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {

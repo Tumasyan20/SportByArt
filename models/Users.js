@@ -19,7 +19,7 @@ const schema = new Schema({
     },
     root: {
         type: Number,
-        default: 0
+        default: 5
     }
 });
 

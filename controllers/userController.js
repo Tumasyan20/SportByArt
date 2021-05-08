@@ -178,6 +178,35 @@ const getUsers = async (req, res) => {
     }
 }
 
+//?Controller for get user info
+const getUser = async (req, res) => {
+    try{
+        if(!checkRights(req.userData.userID, 5)) {
+            throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
+        }
+
+        await User.findById({"_id" : req.params.id}).catch(error =>{
+            if(error) {
+                throw new HTTPException("Wrong id", HTTP.BAD_REQUEST);
+            }
+        })
+        .then((result) => {
+            if(result == null || result.length == 0) {
+                throw new HTTPException("No result!", HTTP.NOT_FOUND);
+            }
+
+            return res.status(HTTP.OK).json(result);
+        });
+    }
+    catch {
+        if (!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = 'Something went wrong';
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+}
+
 //? Controller for update category
 const updateUser = async (req, res) => {
     try{
@@ -271,6 +300,7 @@ module.exports = {
     registerUser,
     userLogin,
     getUsers,
+    getUser,
     updateUser,
     deleteUser
 }

@@ -40,9 +40,9 @@ const getArticles = async (req, res) => {
         else {
             page = parseInt(page);
             const limit = 10;
-        
-            await Article.find({}, 
-                "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name"
+
+            const articles = await Article.find({}, 
+                "title author_id author_username image shortDesc publication rating category_id category_name subCategory_id subCategory_name",
             )
             .skip((page * limit) - limit).limit(limit)
             .sort('-publication').then((result) => {
@@ -50,9 +50,12 @@ const getArticles = async (req, res) => {
                     throw new HTTPException("No results!", HTTP.NOT_FOUND);
                 }
 
-                return res.status(HTTP.OK).json(result);
+                return result;
             });
 
+            const count = await Article.countDocuments();
+            const pageCount = Math.ceil(count/limit);
+            return res.status(HTTP.OK).json({'pageCount' : pageCount, articles});
         }
         
     }
@@ -294,9 +297,9 @@ const updateArticle = async (req, res) => {
 
         if(content) article.content = content;
 
-        if(category) article.category = category;
+        if(category) article.category_id = category;
 
-        if(subCategory) article.subCategory = subCategory;
+        if(subCategory) article.subCategory_id = subCategory;
 
         if(image) {
 
@@ -305,6 +308,7 @@ const updateArticle = async (req, res) => {
             const base64image = image.replace(/^data:([A-Za-z-+/]+);base64,/, '');
             
             fileType.fromBuffer(Buffer.from(base64image, 'base64'))
+            .catch(exception => {if(exception) throw new HTTPException("file error", HTTP.BAD_REQUEST) })
             .then((result) => {
                 if(!result.mime.includes('image'))
                     throw new HTTPException("File is no image", HTTP.FORBIDDEN);
@@ -330,12 +334,32 @@ const updateArticle = async (req, res) => {
                         }
                     })
                     .then((result) => {
-                        if(result.length == 0) {
-                            throw new HTTPException("No results", HTTP.NOT_FOUND);
-                        }
-    
                         return result;
                     });
+                    
+                    if(sliderImage.length == 0) {
+                        let sliderImagePath = './uploads/slider/' + Date.now() + '.jpeg';
+
+                        const base64slider = slider[i].code.replace(/^data:([A-Za-z-+/]+);base64,/, '');
+                        
+                        fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
+                        .catch(exception => {if(exception) throw new HTTPException('File error', HTTP.BAD_REQUEST)})
+                        .then((result) => {
+                            if(!result.mime.includes('image'))
+                                throw new HTTPException("File is no image", HTTP.FORBIDDEN);
+                        });
+
+                        fs.writeFileSync(sliderImagePath, base64slider, {encoding: 'base64'});
+
+                        sliderImagePath = sliderImagePath.substring(1);
+                        const newSliderImage = new Slider({
+                            'image' : sliderImagePath,
+                            'article' : articleId
+                        });
+
+                        newSliderImage.save();
+                        continue;
+                    }
 
                     fs.unlinkSync('.' + sliderImage.path);
 
@@ -344,6 +368,7 @@ const updateArticle = async (req, res) => {
                     const base64slider = slider[i].code.replace(/^data:([A-Za-z-+/]+);base64,/, '');
                     
                     fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
+                    .catch(exception => {if(exception) throw new HTTPException('File error', HTTP.BAD_REQUEST)})
                     .then((result) => {
                         if(!result.mime.includes('image'))
                             throw new HTTPException("File is no image", HTTP.FORBIDDEN);
