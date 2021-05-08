@@ -118,7 +118,6 @@ const searchArticle = async (req, res) => {
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {
-            console.log(exception);
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';
         }
@@ -325,12 +324,18 @@ const updateArticle = async (req, res) => {
 
                 const base64slider = i.replace(/^data:([A-Za-z-+/]+);base64,/, '');
                 
-                fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
-                .catch(exception => {if(exception) throw new HTTPException('File error', HTTP.BAD_REQUEST)})
-                .then((result) => {
-                    if(!result.mime.includes('image'))
-                        throw new HTTPException("File is no image", HTTP.FORBIDDEN);
-                });
+
+                if(await fileType.fromBuffer(Buffer.from(base64slider, 'base64')) == undefined) {
+                    throw new HTTPException('File error', HTTP.BAD_REQUEST)
+                }
+                else {
+                    await fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
+                    .then((result) => {
+                        if(!result.mime.includes('image')) {
+                            throw new HTTPException("File is no image", HTTP.FORBIDDEN);
+                        }
+                    })
+                }
 
                 fs.writeFileSync(sliderImagePath, base64slider, {encoding: 'base64'});
 
@@ -362,7 +367,6 @@ const updateArticle = async (req, res) => {
         return res.status(HTTP.OK).json({"message" : "Article updated successfuly"});
     }
     catch(exception) {
-        console.log(exception)
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = "Somethind went wrong"
