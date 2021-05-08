@@ -288,77 +288,94 @@ const updateArticle = async (req, res) => {
             return result;
         });
 
+        if(title) {
+            if(title != "" || title != undefined) article.title = title;
+        }
 
-        if(title) article.title = title;
+        if(shortDesc) {
+            if(shortDesc != "" || shortDesc != undefined) article.title = shortDesc;
+        }
 
-        if(shortDesc) article.title = title;
+        if(content) {
+            if(content != "" || content != undefined) article.content = content;
+        }
 
-        if(content) article.content = content;
+        if(category) {
+            if(category != "" || category != undefined) article.category_id = category;
+        }
 
-        if(category) article.category_id = category;
-
-        if(subCategory) article.subCategory_id = subCategory;
+        if(subCategory) {
+            if(subCategory != "" || subCategory != undefined) article.subCategory_id = subCategory;
+        }
 
         if(image) {
+            if(image != "" || image != [] || image != undefined) {
 
-            let imagePath = './uploads/images/' + Date.now() + '.jpeg';
-
-            const base64image = image.replace(/^data:([A-Za-z-+/]+);base64,/, '');
-            
-            fileType.fromBuffer(Buffer.from(base64image, 'base64'))
-            .catch(exception => {if(exception) throw new HTTPException("file error", HTTP.BAD_REQUEST) })
-            .then((result) => {
-                if(!result.mime.includes('image'))
-                    throw new HTTPException("File is no image", HTTP.FORBIDDEN);
-            });
-            fs.writeFileSync(imagePath, base64image, {encoding: 'base64'});
-            fs.unlinkSync('.' + article.image);
-            imagePath = imagePath.substring(1);
-            article.image = imagePath;
-        }
-        
-
-        if(newSlider) {
-            for(let i of newSlider) {
-                let sliderImagePath = './uploads/slider/' + Date.now() + '.jpeg';
-
-                const base64slider = i.replace(/^data:([A-Za-z-+/]+);base64,/, '');
+                let imagePath = './uploads/images/' + Date.now() + '.jpeg';
+    
+                const base64image = image.replace(/^data:([A-Za-z-+/]+);base64,/, '');
                 
-
-                if(await fileType.fromBuffer(Buffer.from(base64slider, 'base64')) == undefined) {
-                    throw new HTTPException('File error', HTTP.BAD_REQUEST)
-                }
-                else {
-                    await fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
-                    .then((result) => {
-                        if(!result.mime.includes('image')) {
-                            throw new HTTPException("File is no image", HTTP.FORBIDDEN);
-                        }
-                    })
-                }
-
-                fs.writeFileSync(sliderImagePath, base64slider, {encoding: 'base64'});
-
-                sliderImagePath = sliderImagePath.substring(1);
-                const newSliderImage = new Slider({
-                    'image' : sliderImagePath,
-                    'article' : articleId
+                fileType.fromBuffer(Buffer.from(base64image, 'base64'))
+                .catch(exception => {if(exception) throw new HTTPException("file error", HTTP.BAD_REQUEST) })
+                .then((result) => {
+                    if(!result.mime.includes('image'))
+                        throw new HTTPException("File is no image", HTTP.FORBIDDEN);
                 });
-
-                newSliderImage.save();
+                fs.writeFileSync(imagePath, base64image, {encoding: 'base64'});
+                fs.unlinkSync('.' + article.image);
+                imagePath = imagePath.substring(1);
+                article.image = imagePath;
             }
         }
+        
+        
+        if(newSlider) {
+            if(newSlider != [] || newSlider != "" || newSlider != undefined) {
+                for(let i of newSlider) {
+                    let sliderImagePath = './uploads/slider/' + Date.now() + '.jpeg';
+    
+                    const base64slider = i.replace(/^data:([A-Za-z-+/]+);base64,/, '');
+                    
+    
+                    if(await fileType.fromBuffer(Buffer.from(base64slider, 'base64')) == undefined) {
+                        throw new HTTPException('File error', HTTP.BAD_REQUEST)
+                    }
+                    else {
+                        await fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
+                        .then((result) => {
+                            if(!result.mime.includes('image')) {
+                                throw new HTTPException("File is no image", HTTP.FORBIDDEN);
+                            }
+                        })
+                    }
+    
+                    fs.writeFileSync(sliderImagePath, base64slider, {encoding: 'base64'});
+    
+                    sliderImagePath = sliderImagePath.substring(1);
+                    const newSliderImage = new Slider({
+                        'image' : sliderImagePath,
+                        'article' : articleId
+                    });
+    
+                    newSliderImage.save();
+                }
+            }
+        }
+        
+        
 
         if(deleteSlider) {
-            for(let i of deleteSlider) {
-                await Slider.findOneAndRemove({"image": i}).catch(error => {
-                    if(error) {
-                        throw new HTTPException("Wrong image path", HTTP.BAD_REQUEST);
-                    }
-                });
-
-                fs.unlinkSync('.' + i);
-
+            if(deleteSlider != [] || deleteSlider != "" || deleteSlider != undefined) {
+                for(let i of deleteSlider) {
+                    await Slider.findOneAndRemove({"image": i}).catch(error => {
+                        if(error) {
+                            throw new HTTPException("Wrong image path", HTTP.BAD_REQUEST);
+                        }
+                    });
+    
+                    fs.unlinkSync('.' + i);
+    
+                }
             }
         }
 
