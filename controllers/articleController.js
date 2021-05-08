@@ -34,8 +34,6 @@ const getArticles = async (req, res) => {
 
                 return res.status(HTTP.OK).json(result);
             });
-
-            
         }
         else {
             page = parseInt(page);
@@ -268,7 +266,8 @@ const updateArticle = async (req, res) => {
             category,
             subCategory,
             image,
-            slider
+            deleteSlider,
+            newSlider
         } = req.body;
 
         if(!articleId) {
@@ -319,67 +318,42 @@ const updateArticle = async (req, res) => {
             article.image = imagePath;
         }
         
-        if(slider) {
-            for(let i in slider) {
 
-                if(slider[i].delete) {
-                    await Slider.findOneAndRemove({"image": slider[i].path});
-                }
-                else 
-                {
-                    const sliderImage = await Slider.findOne({"image" : slider.path})
-                    .catch(error => {
-                        if(error) {
-                            throw new HTTPException("Wrong slider image path", HTTP.BAD_REQUEST);
-                        }
-                    })
-                    .then((result) => {
-                        return result;
-                    });
-                    
-                    if(sliderImage.length == 0) {
-                        let sliderImagePath = './uploads/slider/' + Date.now() + '.jpeg';
+        if(newSlider) {
+            for(let i of newSlider) {
+                let sliderImagePath = './uploads/slider/' + Date.now() + '.jpeg';
 
-                        const base64slider = slider[i].code.replace(/^data:([A-Za-z-+/]+);base64,/, '');
-                        
-                        fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
-                        .catch(exception => {if(exception) throw new HTTPException('File error', HTTP.BAD_REQUEST)})
-                        .then((result) => {
-                            if(!result.mime.includes('image'))
-                                throw new HTTPException("File is no image", HTTP.FORBIDDEN);
-                        });
+                const base64slider = i.replace(/^data:([A-Za-z-+/]+);base64,/, '');
+                
+                fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
+                .catch(exception => {if(exception) throw new HTTPException('File error', HTTP.BAD_REQUEST)})
+                .then((result) => {
+                    if(!result.mime.includes('image'))
+                        throw new HTTPException("File is no image", HTTP.FORBIDDEN);
+                });
 
-                        fs.writeFileSync(sliderImagePath, base64slider, {encoding: 'base64'});
+                fs.writeFileSync(sliderImagePath, base64slider, {encoding: 'base64'});
 
-                        sliderImagePath = sliderImagePath.substring(1);
-                        const newSliderImage = new Slider({
-                            'image' : sliderImagePath,
-                            'article' : articleId
-                        });
+                sliderImagePath = sliderImagePath.substring(1);
+                const newSliderImage = new Slider({
+                    'image' : sliderImagePath,
+                    'article' : articleId
+                });
 
-                        newSliderImage.save();
-                        continue;
+                newSliderImage.save();
+            }
+        }
+
+        if(deleteSlider) {
+            for(let i of deleteSlider) {
+                await Slider.findOneAndRemove({"image": i}).catch(error => {
+                    if(error) {
+                        throw new HTTPException("Wrong image path", HTTP.BAD_REQUEST);
                     }
+                });
 
-                    fs.unlinkSync('.' + sliderImage.path);
+                fs.unlinkSync('.' + i);
 
-                    let sliderImagePath = './uploads/slider/' + Date.now() + '.jpeg';
-
-                    const base64slider = slider[i].code.replace(/^data:([A-Za-z-+/]+);base64,/, '');
-                    
-                    fileType.fromBuffer(Buffer.from(base64slider, 'base64'))
-                    .catch(exception => {if(exception) throw new HTTPException('File error', HTTP.BAD_REQUEST)})
-                    .then((result) => {
-                        if(!result.mime.includes('image'))
-                            throw new HTTPException("File is no image", HTTP.FORBIDDEN);
-                    });
-
-                    fs.writeFileSync(sliderImagePath, base64slider, {encoding: 'base64'});
-
-                    sliderImagePath = sliderImagePath.substring(1);
-                    slider.image = sliderImagePath;
-                    slider.save();
-                }
             }
         }
 
@@ -388,6 +362,7 @@ const updateArticle = async (req, res) => {
         return res.status(HTTP.OK).json({"message" : "Article updated successfuly"});
     }
     catch(exception) {
+        console.log(exception)
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = "Somethind went wrong"
@@ -416,7 +391,21 @@ const deleteArticle = async (req, res) => {
 
             return result;
         });
+
+        const slides = await Slider.find({"article" : req.params.id}).catch(exception => {
+            if(exception) {
+                throw new HTTPException("Wrong id", HTTP.BAD_REQUEST);
+            }
+        })
+        .then((result) => {
+            if(result) {
+                return result;
+            }
+        })
         
+        for(let i of slides) {
+            i.deleteOne();
+        }
 
         await article.deleteOne();
         return res.status(HTTP.OK).json({'message' : 'Success'})
