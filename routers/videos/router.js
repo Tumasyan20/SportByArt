@@ -5,6 +5,7 @@ const videoController = require('../../controllers/videoController');       //? 
 
 const Authenticate = require('../../middlewares/authenticate');
 
+router.get('/get/:id', videoController.getVideo);                                //? route for get video by id
 router.get('/list/:page', videoController.getVideos);                       //? route for get video list
 router.get('/:categoryId', videoController.getVideosByCat);                 //? route for get video list by category id
 router.post('/add', Authenticate, videoController.addVideo);                //? route for add new video

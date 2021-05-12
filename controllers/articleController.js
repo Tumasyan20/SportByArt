@@ -289,27 +289,27 @@ const updateArticle = async (req, res) => {
         });
 
         if(title) {
-            if(title != "" || title != undefined) article.title = title;
+            if(title != "" && title != undefined) article.title = title;
         }
 
         if(shortDesc) {
-            if(shortDesc != "" || shortDesc != undefined) article.title = shortDesc;
+            if(shortDesc != "" && shortDesc != undefined) article.title = shortDesc;
         }
 
         if(content) {
-            if(content != "" || content != undefined) article.content = content;
+            if(content != "" && content != undefined) article.content = content;
         }
 
         if(category) {
-            if(category != "" || category != undefined) article.category_id = category;
+            if(category != "" && category != undefined) article.category_id = category;
         }
 
         if(subCategory) {
-            if(subCategory != "" || subCategory != undefined) article.subCategory_id = subCategory;
+            if(subCategory != "" && subCategory != undefined) article.subCategory_id = subCategory;
         }
 
         if(image) {
-            if(image != "" || image != [] || image != undefined) {
+            if(image != "" && image != [] && image != undefined) {
 
                 let imagePath = './uploads/images/' + Date.now() + '.jpeg';
     
@@ -330,7 +330,7 @@ const updateArticle = async (req, res) => {
         
         
         if(newSlider) {
-            if(newSlider != [] || newSlider != "" || newSlider != undefined) {
+            if(newSlider != [] && newSlider != "" && newSlider != undefined) {
                 for(let i of newSlider) {
                     let sliderImagePath = './uploads/slider/' + Date.now() + '.jpeg';
     
@@ -363,9 +363,8 @@ const updateArticle = async (req, res) => {
         }
         
         
-
         if(deleteSlider) {
-            if(deleteSlider != [] || deleteSlider != "" || deleteSlider != undefined) {
+            if(deleteSlider != [] && deleteSlider != "" && deleteSlider != undefined) {
                 for(let i of deleteSlider) {
                     await Slider.findOneAndRemove({"image": i}).catch(error => {
                         if(error) {

@@ -218,7 +218,7 @@ const updateUser = async (req, res) => {
             user_id,
             username,
             email,
-            passowrd
+            password
         } = req.body;
 
         if(!user_id) throw new HTTPException("User id does not exist", HTTP.BAD_REQUEST);
@@ -233,11 +233,11 @@ const updateUser = async (req, res) => {
             return result;
         });
 
-        if(username) user.username = username;
+        if(username && username != "" && username != undefined) user.username = username;
 
-        if(email) user.email = email;
+        if(email && email != "" && email != undefined) user.email = email;
 
-        if(passowrd) {
+        if(password && password != "" && password != undefined) {
             if(password.length < 8) {
                 throw new HTTPException("Too short password", HTTP.FORBIDDEN)
             }

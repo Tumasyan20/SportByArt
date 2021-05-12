@@ -198,7 +198,7 @@ const updateSubCategory = async (req, res) => {
             return result;
         });
 
-        if(title) subCategory.title = title;
+        if(title && title != "" && title != undefined) subCategory.title = title;
 
         subCategory.save();
 

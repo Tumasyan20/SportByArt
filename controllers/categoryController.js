@@ -184,9 +184,9 @@ const updateCategory = async (req, res) => {
             return result;
         });
 
-        if(title) category.title = title;
+        if(title && title != "" && title != undefined) category.title = title;
 
-        if(show_in_nav) category.show_in_nav = show_in_nav;
+        if(show_in_nav && show_in_nav != "" && show_in_nav != undefined) category.show_in_nav = show_in_nav;
 
         category.save();
 
