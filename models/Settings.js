@@ -9,6 +9,10 @@ const schema = new Schema({
         type: String,
         default: ''
     },
+    about_us_image: {
+        type: String,
+        default: ''
+    },
     email_username: {
         type: String,
         default: ''

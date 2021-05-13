@@ -44,6 +44,7 @@ const updateSettings = async (req, res) => {
         const { 
             about_us_title,  
             about_us_content,
+            about_us_image,
             email_username,
             email_password,
             address,
@@ -56,6 +57,8 @@ const updateSettings = async (req, res) => {
         if(about_us_title && about_us_title != undefined) settings[0].about_us_title = about_us_title;
 
         if(about_us_content && about_us_content != undefined) settings[0].about_us_content = about_us_content;
+
+        if(about_us_image && about_us_image != "" && about_us_image != undefined) settings.about_us_image = about_us_image;
 
         if(email_username && email_username != undefined)  settings[0].email_username = email_username;
 
