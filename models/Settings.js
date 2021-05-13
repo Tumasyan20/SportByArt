@@ -16,6 +16,18 @@ const schema = new Schema({
     email_password: {
         type: String,
         default: ''
+    },
+    address: {
+        type: String,
+        default: ''
+    },
+    phone: {
+        type: String,
+        default: ''
+    },
+    email_for_contact: {
+        type: String,
+        default: ''
     }
 });
 

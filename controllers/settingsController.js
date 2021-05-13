@@ -45,18 +45,27 @@ const updateSettings = async (req, res) => {
             about_us_title,  
             about_us_content,
             email_username,
-            email_password
+            email_password,
+            address,
+            phone,
+            email_for_contact
         } = req.body;
 
         let settings = await Settings.find({});
 
-        if(about_us_title) settings[0].about_us_title = about_us_title;
+        if(about_us_title && about_us_title != undefined) settings[0].about_us_title = about_us_title;
 
-        if(about_us_content) settings[0].about_us_content = about_us_content;
+        if(about_us_content && about_us_content != undefined) settings[0].about_us_content = about_us_content;
 
-        if(email_username)  settings[0].email_username = email_username;
+        if(email_username && email_username != undefined)  settings[0].email_username = email_username;
 
-        if(email_password) settings[0].email_password = email_password;
+        if(email_password && email_password != undefined) settings[0].email_password = email_password;
+
+        if(address &&  address != undefined) settings[0].address = address;
+
+        if(phone && phone != undefined) settings[0].phone = phone;
+
+        if(email_for_contact &&  email_for_contact != undefined) settings[0].email_for_contact = email_for_contact;
 
 
         settings[0].save()

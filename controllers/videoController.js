@@ -199,8 +199,11 @@ const updateVideo = async (req, res) => {
             category_id
         } = req.body;
 
+        let author = ""
+        let category = ""
+
         if(author_id && author_id != "" && author_id != undefined) {
-            const author = await User.findById({'_id' : author_id})
+            author = await User.findById({'_id' : author_id})
             .catch(err => {if(err) throw new HTTPException("Wrong author id", HTTP.BAD_REQUEST)})
             .then(result => {
                 if(result == null || result.length == 0) {
@@ -212,7 +215,7 @@ const updateVideo = async (req, res) => {
         }
         
         if(category_id && category_id != "" && category_id != undefined) {
-            const category = await Category.findById({'_id' : category_id})
+            category = await Category.findById({'_id' : category_id})
             .catch(err => {if(err) throw new HTTPException("Wrong id", HTTP.BAD_REQUEST)})
             .then(result => {
                 if(result == null || result.length == 0) {
@@ -236,7 +239,7 @@ const updateVideo = async (req, res) => {
 
         if(title && title != "" && title != undefined) updatedVideo.title = title;
 
-        if(author_id && author_id != "" && author_id != undefined) {
+        if(author != "" && author != undefined) {
             updatedVideo.author_id = author_id;
             updatedVideo.author_username = author.username;
         }
@@ -245,7 +248,7 @@ const updateVideo = async (req, res) => {
 
         if(video && video != "" && video != undefined) updatedVideo.video = video;
 
-        if(category_id && category_id != "" && category_id != undefined) {
+        if(category != "" && category != undefined) {
             updatedVideo.category_id = category_id
             updatedVideo.category_name = category.title
         }
@@ -258,7 +261,7 @@ const updateVideo = async (req, res) => {
     catch(exception) {
         if(!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
-            exception.message = "ARTICLE: Somethind went wrong"
+            exception.message = "Somethind went wrong"
         }
         return res.status(exception.statusCode).json({ message: exception.message });
     }
