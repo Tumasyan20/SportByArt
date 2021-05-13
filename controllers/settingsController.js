@@ -45,6 +45,8 @@ const updateSettings = async (req, res) => {
             about_us_title,  
             about_us_content,
             about_us_image,
+            about_us_author,
+            about_us_author_image,
             email_username,
             email_password,
             address,
@@ -58,7 +60,11 @@ const updateSettings = async (req, res) => {
 
         if(about_us_content && about_us_content != undefined) settings[0].about_us_content = about_us_content;
 
-        if(about_us_image && about_us_image != "" && about_us_image != undefined) settings.about_us_image = about_us_image;
+        if(about_us_image && about_us_image != "" && about_us_image != undefined) settings[0].about_us_image = about_us_image;
+
+        if(about_us_author && about_us_author != "" && about_us_author != undefined) settings[0].about_us_author = about_us_author;
+
+        if(about_us_author_image && about_us_author_image != "" && about_us_author_image != undefined) settings[0].about_us_author_image = about_us_author_image;
 
         if(email_username && email_username != undefined)  settings[0].email_username = email_username;
 

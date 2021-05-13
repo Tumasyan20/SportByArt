@@ -9,6 +9,14 @@ const schema = new Schema({
         type: String,
         default: ''
     },
+    about_us_author: {
+        type: String,
+        default: ''
+    },
+    about_us_author_image: {
+        type: String,
+        default: ''
+    },
     about_us_image: {
         type: String,
         default: ''
