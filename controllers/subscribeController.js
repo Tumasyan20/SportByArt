@@ -19,13 +19,35 @@ const getSubscriberList = async (req, res) => {
             throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
         }
 
-        await Subscribe.find().then((result) => {
-            if(result == null || result.length == 0) {
-                throw new HTTPException("No result", HTTP.NOT_FOUND)
-            }
+        let page = req.params.page;
 
-            return res.status(HTTP.OK).json(result)
-        });
+        if(page == 'all') {
+            await Subscribe.find().then((result) => {
+                if(result == null || result.length == 0) {
+                    throw new HTTPException("No result", HTTP.NOT_FOUND)
+                }
+    
+                return res.status(HTTP.OK).json(result)
+            });
+        }
+        else {
+            page = parseInt(page);
+            const limit = 10;
+            const subscribers = await Subscribe.find({}).skip((page * limit) - limit).limit(limit).then(result => {
+                if(result == null || result.length == 0) {
+                    throw new HTTPException("No result", HTTP.NOT_FOUND);
+                }
+
+                return result;
+            });
+
+            const count = await Subscribe.countDocuments();
+            const pageCount = Math.ceil(count/limit);
+
+            return res.status(HTTP.OK).json({'pageCount' : pageCount, subscribers});
+        }
+
+        
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {

@@ -6,7 +6,7 @@ const Authenticate = require('../../middlewares/authenticate');       //? Connec
 const commentController = require('../../controllers/commentController');       //? Connect comment controller
 
 router.get('/list/:articleId', commentController.getComment);                   //? Route for get comment list by article id
-router.get('/list', commentController.getComments);                             //? route for get all cooment list
+router.get('/get/list/:page', commentController.getComments);                   //? route for get all cooment list
 router.post('/add', commentController.addComment);                              //? route for add new comment
 router.delete('/delete/:id', Authenticate, commentController.deleteComment);    //? Route for delete comment
 

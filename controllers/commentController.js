@@ -37,12 +37,35 @@ const getComment = async (req, res) => {
 //? controller for get all comments
 const getComments = async (req, res) => {
     try {
-        await Comment.find({}).then((result) => {
-            if(!result) {
-                return res.status(HTTP.NOT_FOUND).json({"message" : "There are no comments"});
-            }
-            return res.status(HTTP.OK).json(result);
-        });
+        let page = req.params.page;
+        if(page == "all") {
+            await Comment.find({}).then((result) => {
+                if(!result) {
+                    return res.status(HTTP.NOT_FOUND).json({"message" : "There are no comments"});
+                }
+                return res.status(HTTP.OK).json(result);
+            });
+        }
+        else {
+            page = parseInt(page);
+            const limit = 10;
+
+            const comments = await Comment.find({})
+            .skip((page * limit) - limit).limit(limit)
+            .then(result => {
+                if(result == null || result.length == 0) {
+                    throw new HTTPException("No result", HTTP.NOT_FOUND);
+                }
+
+                return result;
+            });
+
+            const count = await Comment.countDocuments();
+            const pageCount = Math.ceil(count/limit);
+
+            return res.status(HTTP.OK).json({'pageCount' : pageCount, comments});
+        }
+        
     }
     catch(exception) {
         if (!(exception instanceof HTTPException)) {

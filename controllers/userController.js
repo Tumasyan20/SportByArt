@@ -161,15 +161,39 @@ const getUsers = async (req, res) => {
             throw new HTTPException("No admin rights for add new article", HTTP.FORBIDDEN);
         }
 
-        await User.find({}).then((result) => {
-            if(result == null || result.length == 0) {
-                throw new HTTPException("Can't find any user", HTTP.NOT_FOUND)
-            }
-            return res.status(HTTP.OK).json(result)
-        });
+        let page = req.params.page;
+        if(page == "all") {
+            await User.find({}).then((result) => {
+                if(result == null || result.length == 0) {
+                    throw new HTTPException("Can't find any user", HTTP.NOT_FOUND)
+                }
+                return res.status(HTTP.OK).json(result)
+            });
+        }
+        else {
+            page = parseInt(page);
+            const limit = 10;
+            
+            const users = await User.find({})
+            .skip((page * limit) - limit).limit(limit)
+            .then(result => {
+                if(result == null || result.length == 0) {
+                    throw new HTTPException("No result", HTTP.NOT_FOUND);
+                }
+
+                return result;
+            });
+
+            const count = await User.countDocuments();
+            const pageCount = Math.ceil(count/limit);
+
+            return res.status(HTTP.OK).json({'pageCount' : pageCount, users});
+        }
+        
 
     }
     catch(exception) {
+        console.log(exception)
         if (!(exception instanceof HTTPException)) {
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = 'Something went wrong';

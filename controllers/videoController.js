@@ -52,15 +52,21 @@ const getVideos = async (req, res) => {
             page = parseInt(page);
             const limit = 10;
             
-            await Video.find({})
+            const videos = await Video.find({})
             .skip((page * limit) - limit).limit(limit)
             .then((result) => {
-                if(!result) {
+                if(result == null || result.length == 0){
                     throw new HTTPException("There are now videos", HTTP.NOT_FOUND);
                 }
         
-                return res.status(HTTP.OK).json(result);
+                return result;
             });
+
+            const count = await Video.countDocuments();
+            const pageCount = Math.ceil(count/limit);
+
+            return res.status(HTTP.OK).json({'pageCount' : pageCount, videos});
+
         }
         
     }
