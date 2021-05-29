@@ -91,7 +91,51 @@ const updateSettings = async (req, res) => {
     }
 }
 
+const getAboutUs = async (req, res) => {
+    try {
+        await Settings.find({}, 
+            "about_us_title about_us_content about_us_image about_us_author about_us_author_image"
+        ).then((result => {
+            if(!result || result == null || result.length == 0) {
+                throw new HTTPException("No result");
+            }
+
+            return res.status(HTTP.OK).json(result);
+        }))
+    }
+    catch(exception) {
+        if (!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = 'Something went wrong';
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+}
+
+const getFooter = async (req, res) => {
+    try {
+        await Settings.find({}, 
+            "address phone email_for_contact"
+        ).then(result => {
+            if(!result || result == null || result.length == 0) {
+                throw new HTTPException("No result", HTTP.NOT_FOUND);
+            }
+
+            return res.status(HTTP.OK).json(result)
+        })
+    }
+    catch(exception) {
+        if (!(exception instanceof HTTPException)) {
+            exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
+            exception.message = 'Something went wrong';
+        }
+        return res.status(exception.statusCode).json({ message: exception.message });
+    }
+}
+
 module.exports = {
     getSettings,
-    updateSettings
+    updateSettings,
+    getAboutUs,
+    getFooter
 }

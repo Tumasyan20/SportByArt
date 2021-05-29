@@ -34,18 +34,13 @@ const index = async (req, res) => {
                 }
             })
             .then((result) => {
-                console.log("1", finalResult);
                 const id = categories[i]._id;
-                console.log("2", finalResult);
 
                 finalResult.content[id] = {};
-                console.log("3", finalResult);
 
                 finalResult.content[id].title = categories[i].title;
-                console.log("4", finalResult);
 
                 finalResult.content[id].articles = result;
-                console.log("5", finalResult);
 
             });
         }
@@ -54,7 +49,6 @@ const index = async (req, res) => {
     }
     catch(exception) {
         if(!(exception instanceof HTTPException)) {
-            console.log(exception)
             exception.statusCode = HTTP.INTERNAL_SERVER_ERROR;
             exception.message = "Somethind went wrong"
         }
